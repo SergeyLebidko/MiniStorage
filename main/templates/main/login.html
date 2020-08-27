@@ -1,0 +1,40 @@
+{% extends 'main/base_templat.html' %}
+
+{% block content %}
+    <div class="loginDiv">
+        {% if user.is_authenticated %}
+            Вы уже выполнили вход на сайт
+        {% else %}
+            <form method="post">
+                {% csrf_token %}
+                <table class="loginTable">
+                    <tr>
+                        <td>
+                            Имя пользователя
+                        </td>
+                        <td>
+                            {{ form.username }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Пароль:
+                        </td>
+                        <td>
+                            {{ form.password }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td><td><input type="submit" value="Войти"></td>
+                    </tr>
+                </table>
+                <input type="hidden" name="next" value="{{ next }}">
+            </form>
+            {% if form.non_field_errors %}
+                {% for error in form.non_field_errors %}
+                    <p class="loginErrorField">{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endif %}
+    </div>
+{% endblock %}
