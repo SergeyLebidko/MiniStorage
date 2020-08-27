@@ -1,0 +1,9 @@
+.basic_div {
+    font-style: normal;
+    background-color: RGB(240, 240, 240);
+    border: 1px solid RGB(200, 200, 200);
+    border-radius: 5px;
+    margin: 10px auto;
+    width: 800px;
+    padding: 20px;
+}
