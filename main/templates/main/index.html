@@ -1,15 +1,10 @@
-{% load static %}
+{% extends 'main/base_templat.html' %}
 
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="{% static 'main/base.css' %}">
-    <title>MiniStorage</title>
-</head>
-<body>
-<div class="basic_div">
-    <p>Главная страница</p>
-</div>
-</body>
-</html>
+{% block content %}
+    <div class="basic_div">
+        Главная страница сайта
+    </div>
+    <script>
+        alert(window.jQuery == undefined)
+    </script>
+{% endblock %}
