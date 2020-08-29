@@ -2,62 +2,62 @@
 
 {% block content %}
     <div class="basicDiv">
-        <ul id="mainMenuBar">
-            <li class="mainMenuListElement">
-                <span class="menuItem">
+        <ul id="main-menu-bar">
+            <li class="main-menu-list-element">
+                <span class="menu-item">
                     {% if user.first_name or user.last_name %}
                         {{ user.get_full_name }}
                     {% else %}
                         {{ user }}
                     {% endif %}
                 </span>
-                <ul class="dropDownMenu">
-                    <li class="dropDownMenuListElement">
-                        <span class="menuItem">
-                            <a class="menuLink" href="{% url 'logout' %}">Выйти</a>
+                <ul class="drop-down-menu">
+                    <li class="drop-down-menu-list-element">
+                        <span class="menu-item">
+                            <a class="menu-link" href="{% url 'logout' %}">Выйти</a>
                         </span>
                     </li>
                 </ul>
             </li>
-            <li class="mainMenuListElement">
-                <span class="menuItem">Справочники</span>
-                <ul class="dropDownMenu">
+            <li class="main-menu-list-element">
+                <span class="menu-item">Справочники</span>
+                <ul class="drop-down-menu">
                     <li class="dropDownMenuListElement">
-                        <span class="menuItem">Товары</span>
+                        <span class="menu-item">Товары</span>
                     </li>
-                    <li class="dropDownMenuListElement">
-                        <span class="menuItem">Контрагенты</span>
-                    </li>
-                </ul>
-            </li>
-            <li class="mainMenuListElement">
-                <span class="menuItem">Документы</span>
-                <ul class="dropDownMenu">
-                    <li class="dropDownMenuListElement">
-                        <span class="menuItem">Приходные документы</span>
-                    </li>
-                    <li class="dropDownMenuListElement">
-                        <span class="menuItem">Расходные документы</span>
+                    <li class="drop-down-menu-list-element">
+                        <span class="menu-item">Контрагенты</span>
                     </li>
                 </ul>
             </li>
-            <li class="mainMenuListElement">
-                <span class="menuItem">Отчеты</span>
-                <ul class="dropDownMenu">
+            <li class="main-menu-list-element">
+                <span class="menu-item">Документы</span>
+                <ul class="drop-down-menu">
                     <li class="dropDownMenuListElement">
-                        <span class="menuItem">Остатки товаров на складе</span>
+                        <span class="menu-item">Приходные документы</span>
                     </li>
                     <li class="dropDownMenuListElement">
-                        <span class="menuItem">Движение в разрезе товаров</span>
-                    </li>
-                    <li class="dropDownMenuListElement">
-                        <span class="menuItem">Движение в разрезе контрагентов</span>
+                        <span class="menu-item">Расходные документы</span>
                     </li>
                 </ul>
             </li>
-            <li class="mainMenuListElement">
-                <span class="menuItem">
-                    <a class="menuLink" href="/admin/">Администрирование</a>
+            <li class="main-menu-list-element">
+                <span class="menu-item">Отчеты</span>
+                <ul class="drop-down-menu">
+                    <li class="dropDownMenuListElement">
+                        <span class="menu-item">Остатки товаров на складе</span>
+                    </li>
+                    <li class="dropDownMenuListElement">
+                        <span class="menu-item">Движение в разрезе товаров</span>
+                    </li>
+                    <li class="dropDownMenuListElement">
+                        <span class="menu-item">Движение в разрезе контрагентов</span>
+                    </li>
+                </ul>
+            </li>
+            <li class="main-menu-list-element">
+                <span class="menu-item">
+                    <a class="menu-link" href="/admin/">Администрирование</a>
                 </span>
             </li>
         </ul>

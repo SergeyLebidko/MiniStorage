@@ -53,7 +53,7 @@ input[type=text], input[type=password] {
 
 /* Стили для главного меню */
 
-#mainMenuBar {
+#main-menu-bar {
     border-radius: 4px;
     list-style: none; /* Убираем маркеры списка */
     padding-left: 0; /* Убираем отступы */
@@ -62,12 +62,12 @@ input[type=text], input[type=password] {
     margin: 10px;
 }
 
-.mainMenuListElement {
+.main-menu-list-element {
     float: left; /* Размещаем список горизонтально для реализации меню */
     position: relative; /* Задаем позицию для позиционирования */
 }
 
-.menuItem {
+.menu-item {
     border-radius: 4px;
     background: RGB(150, 150, 150); /* Добавляем фон к пункту меню */
     color: white; /* Меняем цвет текста */
@@ -77,18 +77,18 @@ input[type=text], input[type=password] {
     cursor: pointer;
 }
 
-.menuItem:hover {
+.menu-item:hover {
     background: RGB(80, 75, 200); /* Добавляем эффект при наведении */
 }
 
-.menuLink {
+.menu-link {
     color: white;
     text-decoration: none;
 }
 
 /* Стили для выпадающего меню */
 
-.dropDownMenu {
+.drop-down-menu {
     list-style: none; /* Убираем маркеры списка */
     padding-left: 0; /* Убираем отступы */
     position: absolute;
@@ -97,7 +97,7 @@ input[type=text], input[type=password] {
 }
 
 /* Делаем скрытую часть видимой */
-.mainMenuListElement:hover > .dropDownMenu {
+.main-menu-list-element:hover > .drop-down-menu {
     display: block;
     width: 250px; /* Задаем ширину выпадающего меню */
 }
