@@ -26,10 +26,12 @@
                         </td>
                     </tr>
                     <tr>
-                        <td></td><td><input type="submit" value="Войти"></td>
+                        <td></td>
+                        <td><input type="submit" value="Войти"></td>
                     </tr>
                 </table>
                 <input type="hidden" name="next" value="{{ next }}">
+                <input type="hidden" id="user-token" name="user_token" value="">
             </form>
             {% if form.non_field_errors %}
                 {% for error in form.non_field_errors %}
@@ -38,4 +40,13 @@
             {% endif %}
         {% endif %}
     </div>
+    <script>
+        let tokenField = document.getElementById("user-token");
+        let symbols = "0123456789qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM";
+        let token = []
+        for (let i = 0; i < 32; i++) token.push(symbols[Math.floor(Math.random() * symbols.length)]);
+        token = token.join("");
+        tokenField.value = token;
+        localStorage.setItem("user_token", token)
+    </script>
 {% endblock %}
