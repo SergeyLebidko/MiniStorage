@@ -2,6 +2,61 @@
 
 {% block content %}
     <div class="basicDiv">
-        Главная страница сайта
+        <ul id="mainMenuBar">
+            <li class="mainMenuListElement">
+                <span class="menuItem">
+                    {% if user.first_name or user.last_name %}
+                        {{ user.get_full_name }}
+                    {% else %}
+                        {{ user }}
+                    {% endif %}
+                </span>
+                <ul class="dropDownMenu">
+                    <li class="dropDownMenuListElement">
+                        <span class="menuItem">Выйти</span>
+                    </li>
+                </ul>
+            </li>
+            <li class="mainMenuListElement">
+                <span class="menuItem">Справочники</span>
+                <ul class="dropDownMenu">
+                    <li class="dropDownMenuListElement">
+                        <span class="menuItem">Товары</span>
+                    </li>
+                    <li class="dropDownMenuListElement">
+                        <span class="menuItem">Контрагенты</span>
+                    </li>
+                </ul>
+            </li>
+            <li class="mainMenuListElement">
+                <span class="menuItem">Документы</span>
+                <ul class="dropDownMenu">
+                    <li class="dropDownMenuListElement">
+                        <span class="menuItem">Приходные документы</span>
+                    </li>
+                    <li class="dropDownMenuListElement">
+                        <span class="menuItem">Расходные документы</span>
+                    </li>
+                </ul>
+            </li>
+            <li class="mainMenuListElement">
+                <span class="menuItem">Отчеты</span>
+                <ul class="dropDownMenu">
+                    <li class="dropDownMenuListElement">
+                        <span class="menuItem">Остатки товаров на складе</span>
+                    </li>
+                    <li class="dropDownMenuListElement">
+                        <span class="menuItem">Движение в разрезе товаров</span>
+                    </li>
+                    <li class="dropDownMenuListElement">
+                        <span class="menuItem">Движение в разрезе контрагентов</span>
+                    </li>
+                </ul>
+            </li>
+            <li class="mainMenuListElement">
+                <span class="menuItem">Администрирование</span>
+            </li>
+        </ul>
+        Тестовая строка непосредственно под меню
     </div>
 {% endblock %}

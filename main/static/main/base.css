@@ -4,13 +4,20 @@
     border: 1px solid RGB(200, 200, 200);
     border-radius: 4px;
     margin: 10px auto;
-    width: 800px;
-    padding: 20px;
+    width: 1000px;
+    padding: 10px;
+}
+
+/* Стили для страницы входа на сайт */
+
+.loginDiv {
+    width: 450px;
+    margin: 200px auto;
 }
 
 input[type=submit] {
     width: 100%;
-    background-color: #4CAF50;
+    background-color: RGB(150, 150, 150);
     color: white;
     padding: 7px 10px;
     border: none;
@@ -19,19 +26,14 @@ input[type=submit] {
 }
 
 input[type=submit]:hover {
-    background-color: #45a049;
+    background-color: RGB(75, 175, 80);
 }
 
 input[type=text], input[type=password] {
     width: 100%;
     padding: 6px 10px;
-    border: 1px solid #ccc;
+    border: 1px solid RGB(205, 205, 205);
     border-radius: 4px;
-}
-
-.loginDiv {
-    width: 450px;
-    margin: 200px auto;
 }
 
 .loginTable {
@@ -47,4 +49,50 @@ input[type=text], input[type=password] {
     color: red;
     width: 70%;
     margin: 5px auto;
+}
+
+/* Стили для главного меню */
+
+#mainMenuBar {
+    border-radius: 4px;
+    list-style: none; /* Убираем маркеры списка */
+    padding-left: 0; /* Убираем отступы */
+    background: RGB(150, 150, 150); /* Добавляем фон всему меню */
+    height: 30px; /* Задаем высоту */
+    margin: 10px;
+}
+
+.mainMenuListElement {
+    float: left; /* Размещаем список горизонтально для реализации меню */
+    position: relative; /* Задаем позицию для позиционирования */
+}
+
+.menuItem {
+    border-radius: 4px;
+    background: RGB(150, 150, 150); /* Добавляем фон к пункту меню */
+    color: white; /* Меняем цвет текста */
+    padding: 0 15px; /* Добавляем отступ */
+    line-height: 30px; /* Ровняем меню по вертикали */
+    display: block;
+    cursor: pointer;
+}
+
+.menuItem:hover {
+    background: RGB(75, 175, 80); /* Добавляем эффект при наведении */
+}
+
+/* Стили для выпадающего меню */
+
+.dropDownMenu {
+    list-style: none; /* Убираем маркеры списка */
+    padding-left: 0; /* Убираем отступы */
+    position: absolute;
+    top: 30px;
+    display: none;
+}
+
+/* Делаем скрытую часть видимой */
+.mainMenuListElement:hover > .dropDownMenu {
+    display: block;
+    width: 250px; /* Задаем ширину выпадающего меню */
 }
