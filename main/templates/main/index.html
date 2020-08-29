@@ -13,7 +13,9 @@
                 </span>
                 <ul class="dropDownMenu">
                     <li class="dropDownMenuListElement">
-                        <span class="menuItem">Выйти</span>
+                        <span class="menuItem">
+                            <a class="menuLink" href="{% url 'logout' %}">Выйти</a>
+                        </span>
                     </li>
                 </ul>
             </li>
@@ -54,7 +56,9 @@
                 </ul>
             </li>
             <li class="mainMenuListElement">
-                <span class="menuItem">Администрирование</span>
+                <span class="menuItem">
+                    <a class="menuLink" href="/admin/">Администрирование</a>
+                </span>
             </li>
         </ul>
         Тестовая строка непосредственно под меню

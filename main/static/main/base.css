@@ -25,8 +25,8 @@ input[type=submit] {
     cursor: pointer;
 }
 
-input[type=submit]:hover {
-    background-color: RGB(75, 175, 80);
+input[type=submit]:hover,  input[type=submit]:focus {
+    background-color: RGB(80, 75, 200);
 }
 
 input[type=text], input[type=password] {
@@ -78,7 +78,12 @@ input[type=text], input[type=password] {
 }
 
 .menuItem:hover {
-    background: RGB(75, 175, 80); /* Добавляем эффект при наведении */
+    background: RGB(80, 75, 200); /* Добавляем эффект при наведении */
+}
+
+.menuLink {
+    color: white;
+    text-decoration: none;
 }
 
 /* Стили для выпадающего меню */
