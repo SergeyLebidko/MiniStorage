@@ -1,7 +1,7 @@
 {% extends 'main/base_templat.html' %}
 
 {% block content %}
-    <div class="loginDiv">
+    <div class="login-div">
         {% if user.is_authenticated %}
             Вы уже выполнили вход на сайт
             <a href="{% url 'index' %}">Перейти на главную страницу</a>
@@ -40,6 +40,7 @@
             {% endif %}
         {% endif %}
     </div>
+
     <script>
         let tokenField = document.getElementById("user-token");
         let symbols = "0123456789qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM";

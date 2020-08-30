@@ -1,7 +1,7 @@
 {% extends 'main/base_templat.html' %}
 
 {% block content %}
-    <div class="basicDiv">
+    <div class="basic-div" id="menu-div">
         <ul id="main-menu-bar">
             <li class="main-menu-list-element">
                 <span class="menu-item">
@@ -23,7 +23,7 @@
                 <span class="menu-item">Справочники</span>
                 <ul class="drop-down-menu">
                     <li class="dropDownMenuListElement">
-                        <span class="menu-item">Товары</span>
+                        <span class="menu-item" id="show-products-button">Товары</span>
                     </li>
                     <li class="drop-down-menu-list-element">
                         <span class="menu-item">Контрагенты</span>
@@ -62,4 +62,27 @@
             </li>
         </ul>
     </div>
+
+    <script>
+        let showProductsButton = document.getElementById("show-products-button");
+        showProductsButton.addEventListener("click", event => {
+            event.stopPropagation();
+            let userToken = localStorage.getItem("user_token");
+            fetch("/api/products/", {headers: {"Authorization": userToken}})
+                .then(response => response.json())
+                .then(data => {
+                    let menuDiv = document.getElementById("menu-div");
+                    let contentDiv = document.createElement("div");
+                    contentDiv.className = "basic-div";
+                    menuDiv.after(contentDiv);
+
+                    let products = data.results;
+                    for (let product of products) {
+                        let p = document.createElement("p");
+                        p.innerText = product.title;
+                        contentDiv.append(p)
+                    }
+                })
+        })
+    </script>
 {% endblock %}

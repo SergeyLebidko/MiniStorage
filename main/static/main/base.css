@@ -1,4 +1,4 @@
-.basicDiv, .loginDiv {
+.basic-div, .login-div {
     font-style: normal;
     background-color: RGB(240, 240, 240);
     border: 1px solid RGB(200, 200, 200);
@@ -10,7 +10,7 @@
 
 /* Стили для страницы входа на сайт */
 
-.loginDiv {
+.login-div {
     width: 450px;
     margin: 200px auto;
 }
