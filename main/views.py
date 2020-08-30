@@ -3,7 +3,10 @@ from django.shortcuts import render
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.decorators import login_required
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 from .serializers import ProductSerializer
+from .authentication import TokenAuthentication
+from .pagination import CustomPagination
 from .models import Product, Token
 
 
@@ -30,4 +33,7 @@ def index(request):
 
 class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
+    pagination_class = CustomPagination
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
     queryset = Product.objects.all()
