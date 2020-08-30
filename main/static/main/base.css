@@ -1,4 +1,4 @@
-.basic-div, .login-div {
+.basic-div, .login-div, .content-div {
     font-style: normal;
     background-color: RGB(240, 240, 240);
     border: 1px solid RGB(200, 200, 200);
@@ -6,6 +6,11 @@
     margin: 10px auto;
     width: 1000px;
     padding: 10px;
+}
+
+.content-div {
+    position: relative;
+    top: 95px
 }
 
 /* Стили для страницы входа на сайт */
@@ -52,6 +57,16 @@ input[type=text], input[type=password] {
 }
 
 /* Стили для главного меню */
+
+#menu-div {
+    background: white;
+    position: fixed;
+    width: 100%;
+    height: 93px;
+    left: 0;
+    top: 0;
+    z-index: 1
+}
 
 #main-menu-bar {
     border-radius: 4px;

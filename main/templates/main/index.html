@@ -1,9 +1,10 @@
 {% extends 'main/base_templat.html' %}
 
 {% block content %}
-    <div class="basic-div" id="menu-div">
-        <ul id="main-menu-bar">
-            <li class="main-menu-list-element">
+    <div id="menu-div">
+        <div class="basic-div">
+            <ul id="main-menu-bar">
+                <li class="main-menu-list-element">
                 <span class="menu-item">
                     {% if user.first_name or user.last_name %}
                         {{ user.get_full_name }}
@@ -11,71 +12,75 @@
                         {{ user }}
                     {% endif %}
                 </span>
-                <ul class="drop-down-menu">
-                    <li class="drop-down-menu-list-element">
+                    <ul class="drop-down-menu">
+                        <li class="drop-down-menu-list-element">
                         <span class="menu-item">
                             <a class="menu-link" href="{% url 'logout' %}">Выйти</a>
                         </span>
-                    </li>
-                </ul>
-            </li>
-            <li class="main-menu-list-element">
-                <span class="menu-item">Справочники</span>
-                <ul class="drop-down-menu">
-                    <li class="dropDownMenuListElement">
-                        <span class="menu-item" id="show-products-button">Товары</span>
-                    </li>
-                    <li class="drop-down-menu-list-element">
-                        <span class="menu-item">Контрагенты</span>
-                    </li>
-                </ul>
-            </li>
-            <li class="main-menu-list-element">
-                <span class="menu-item">Документы</span>
-                <ul class="drop-down-menu">
-                    <li class="dropDownMenuListElement">
-                        <span class="menu-item">Приходные документы</span>
-                    </li>
-                    <li class="dropDownMenuListElement">
-                        <span class="menu-item">Расходные документы</span>
-                    </li>
-                </ul>
-            </li>
-            <li class="main-menu-list-element">
-                <span class="menu-item">Отчеты</span>
-                <ul class="drop-down-menu">
-                    <li class="dropDownMenuListElement">
-                        <span class="menu-item">Остатки товаров на складе</span>
-                    </li>
-                    <li class="dropDownMenuListElement">
-                        <span class="menu-item">Движение в разрезе товаров</span>
-                    </li>
-                    <li class="dropDownMenuListElement">
-                        <span class="menu-item">Движение в разрезе контрагентов</span>
-                    </li>
-                </ul>
-            </li>
-            <li class="main-menu-list-element">
+                        </li>
+                    </ul>
+                </li>
+                <li class="main-menu-list-element">
+                    <span class="menu-item">Справочники</span>
+                    <ul class="drop-down-menu">
+                        <li class="dropDownMenuListElement">
+                            <span class="menu-item" id="show-products-button">Товары</span>
+                        </li>
+                        <li class="drop-down-menu-list-element">
+                            <span class="menu-item">Контрагенты</span>
+                        </li>
+                    </ul>
+                </li>
+                <li class="main-menu-list-element">
+                    <span class="menu-item">Документы</span>
+                    <ul class="drop-down-menu">
+                        <li class="dropDownMenuListElement">
+                            <span class="menu-item">Приходные документы</span>
+                        </li>
+                        <li class="dropDownMenuListElement">
+                            <span class="menu-item">Расходные документы</span>
+                        </li>
+                    </ul>
+                </li>
+                <li class="main-menu-list-element">
+                    <span class="menu-item">Отчеты</span>
+                    <ul class="drop-down-menu">
+                        <li class="dropDownMenuListElement">
+                            <span class="menu-item">Остатки товаров на складе</span>
+                        </li>
+                        <li class="dropDownMenuListElement">
+                            <span class="menu-item">Движение в разрезе товаров</span>
+                        </li>
+                        <li class="dropDownMenuListElement">
+                            <span class="menu-item">Движение в разрезе контрагентов</span>
+                        </li>
+                    </ul>
+                </li>
+                <li class="main-menu-list-element">
                 <span class="menu-item">
                     <a class="menu-link" href="/admin/">Администрирование</a>
                 </span>
-            </li>
-        </ul>
+                </li>
+            </ul>
+        </div>
     </div>
+
+    <div class="content-div" id="content-div" style="display: none"></div>
 
     <script>
         let showProductsButton = document.getElementById("show-products-button");
         showProductsButton.addEventListener("click", event => {
             event.stopPropagation();
             let userToken = localStorage.getItem("user_token");
+            let contentDiv = document.getElementById("content-div");
             fetch("/api/products/", {headers: {"Authorization": userToken}})
-                .then(response => response.json())
+                .then(response => {
+                    contentDiv.style.display = "block";
+                    contentDiv.innerHTML = "";
+                    return response.json()
+                })
                 .then(data => {
-                    let menuDiv = document.getElementById("menu-div");
-                    let contentDiv = document.createElement("div");
-                    contentDiv.className = "basic-div";
-                    menuDiv.after(contentDiv);
-
+                    if (!data) return;
                     let products = data.results;
                     for (let product of products) {
                         let p = document.createElement("p");
