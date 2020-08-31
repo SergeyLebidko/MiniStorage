@@ -82,11 +82,27 @@
                 .then(data => {
                     if (!data) return;
                     let products = data.results;
-                    for (let product of products) {
-                        let p = document.createElement("p");
-                        p.innerText = product.title;
-                        contentDiv.append(p)
+
+                    //Формируем строку заголовка таблицы
+                    let columnTitles = ["Номер", "Наименование", "Описание", "Цена", "Дата создания", "Дата изменения"];
+                    let tableHeader = "";
+                    for (let columnTitle of columnTitles) {
+                        tableHeader += `<td>${columnTitle}</td>`;
                     }
+                    tableHeader = `<tr>${tableHeader}</tr>`;
+
+                    //Формируем тело таблицы
+                    let tableData = "", tableRow = "", tableRows = "";
+                    let dataKeys = ["id", "title", "description", "price", "dt_created", "dt_updated"];
+                    for (let product of products) {
+                        for (let key of dataKeys) {
+                            tableRow += `<td>${product[key] ? product[key] : "- нет -"}</td>`
+                        }
+                        tableRows += `<tr>${tableRow}</tr>`;
+                        tableRow = "";
+                    }
+                    tableData = `<table class="data-table">${tableHeader}${tableRows}</table>`;
+                    contentDiv.innerHTML = tableData;
                 })
         })
     </script>

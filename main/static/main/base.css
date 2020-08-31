@@ -30,7 +30,7 @@ input[type=submit] {
     cursor: pointer;
 }
 
-input[type=submit]:hover,  input[type=submit]:focus {
+input[type=submit]:hover, input[type=submit]:focus {
     background-color: RGB(80, 75, 200);
 }
 
@@ -101,8 +101,6 @@ input[type=text], input[type=password] {
     text-decoration: none;
 }
 
-/* Стили для выпадающего меню */
-
 .drop-down-menu {
     list-style: none; /* Убираем маркеры списка */
     padding-left: 0; /* Убираем отступы */
@@ -111,8 +109,24 @@ input[type=text], input[type=password] {
     display: none;
 }
 
-/* Делаем скрытую часть видимой */
 .main-menu-list-element:hover > .drop-down-menu {
     display: block;
     width: 250px; /* Задаем ширину выпадающего меню */
+}
+
+/* Стили для таблиц с данными */
+
+.data-table td {
+    padding: 5px 5px 10px 10px;
+}
+
+.data-table tr:first-child {
+    background: RGB(150, 150, 150);
+    color: white;
+    height: 30px;
+    text-align: center;
+}
+
+.data-table tr:not(:first-child) {
+    background: RGB(210, 210, 210);
 }
