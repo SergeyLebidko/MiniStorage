@@ -65,12 +65,18 @@
         </div>
     </div>
 
-    <div class="content-div" id="content-div" style="display: none"></div>
+    <div class="content-div" id="content-div"></div>
+
+    <div class="modal-div" id="product-editor" style="display: none">
+        <div class="login-div">
+            Привет!
+        </div>
+    </div>
 
     <script>
-        let showProductsButton = document.getElementById("show-products-button");
-        let contentDiv = document.getElementById("content-div");
-        let userToken = localStorage.getItem("user_token");
+        const showProductsButton = document.getElementById("show-products-button");
+        const contentDiv = document.getElementById("content-div");
+        const userToken = localStorage.getItem("user_token");
 
         function createContentTable(data, columnTitles, columnKeys) {
             let table = document.createElement("table");
@@ -78,23 +84,28 @@
             table.id = "content-table";
 
             //Формируем строку заголовка таблицы
-            let tableHeader = "";
+            let tableHeader = document.createElement("tr");
+            let headerHTML = "";
             for (let columnTitle of columnTitles) {
-                tableHeader += `<th>${columnTitle}</th>`;
+                headerHTML += `<th>${columnTitle}</th>`;
             }
-            tableHeader = `<tr>${tableHeader}</tr>`;
+            tableHeader.innerHTML = headerHTML;
+            table.append(tableHeader);
 
             //Формируем тело таблицы
-            let tableRow = "", tableRows = "";
+            let cells = "";
+            let tableRow = null;
             for (let dataElement of data) {
                 for (let columnKey of columnKeys) {
-                    tableRow += `<td>${dataElement[columnKey] ? dataElement[columnKey] : "- нет -"}</td>`
+                    cells += `<td>${dataElement[columnKey] ? dataElement[columnKey] : "- нет -"}</td>`
                 }
-                tableRows += `<tr>${tableRow}</tr>`;
-                tableRow = "";
+                tableRow = document.createElement("tr");
+                tableRow.setAttribute("obj-id", dataElement.id);
+                tableRow.innerHTML = cells;
+                table.append(tableRow);
+                cells = "";
             }
 
-            table.innerHTML = `${tableHeader}${tableRows}`;
             return table;
         }
 
@@ -121,7 +132,8 @@
 
                     let columnTitles = ["Номер", "Наименование", "Описание", "Цена", "Дата создания", "Дата изменения"];
                     let columnKeys = ["id", "title", "description", "price", "dt_created", "dt_updated"];
-                    let table = createContentTable(products, columnTitles, columnKeys)
+                    let table = createContentTable(products, columnTitles, columnKeys, productClick);
+                    table.addEventListener("click", productClick);
                     contentDiv.append(table);
 
                     if (nextPage || prevPage) {
@@ -131,18 +143,18 @@
                             let prevButton = document.createElement("span");
                             prevButton.className = "navigation-button";
                             prevButton.innerText = "Предыдущая страница";
-                            prevButton.addEventListener("click", event => {
+                            prevButton.addEventListener("click", () => {
                                 showProducts(prevPage)
-                            })
+                            });
                             navigationDiv.append(prevButton)
                         }
                         if (nextPage) {
                             let nextButton = document.createElement("span");
                             nextButton.className = "navigation-button";
                             nextButton.innerText = "Следующая страница";
-                            nextButton.addEventListener("click", event => {
+                            nextButton.addEventListener("click", () => {
                                 showProducts(nextPage)
-                            })
+                            });
                             navigationDiv.append(nextButton)
                         }
                         contentDiv.append(navigationDiv);
@@ -150,10 +162,19 @@
                 })
         }
 
-        showProductsButton.addEventListener("click", event => {
-            event.stopPropagation();
-            showProducts("/api/products/");
-        })
+        function productClick(event) {
+            let row = event.target.closest("tr");
+            if (!row) return;
+
+            let productId = row.getAttribute("obj-id");
+            if (!productId) return;
+
+            let productEditor = document.getElementById("product-editor");
+            productEditor.style.display = "block";
+            document.body.style.overflow = "hidden";
+        }
+
+        showProductsButton.addEventListener("click", () => showProducts("/api/products/"))
 
     </script>
 {% endblock %}
