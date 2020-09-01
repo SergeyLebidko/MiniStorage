@@ -116,17 +116,41 @@ input[type=text], input[type=password] {
 
 /* Стили для таблиц с данными */
 
-.data-table td {
-    padding: 5px 5px 10px 10px;
-}
-
-.data-table tr:first-child {
+.content-table th {
     background: RGB(150, 150, 150);
     color: white;
     height: 30px;
     text-align: center;
+    padding: 5px 5px 10px 10px;
 }
 
-.data-table tr:not(:first-child) {
+.content-table tr:nth-child(even) {
+    background: RGB(190, 190, 190);
+}
+
+.content-table tr:nth-child(odd) {
     background: RGB(210, 210, 210);
+}
+
+.content-table tr:hover {
+    background: RGB(180, 180, 250);
+    cursor: pointer;
+}
+
+.content-table td {
+    padding: 5px 5px 10px 10px;
+}
+
+.navigation-button {
+    background-color: RGB(150, 150, 150);
+    color: white;
+    margin: 10px;
+    padding: 7px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.navigation-button:hover {
+    background: RGB(80, 75, 200);
 }

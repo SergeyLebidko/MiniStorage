@@ -69,11 +69,37 @@
 
     <script>
         let showProductsButton = document.getElementById("show-products-button");
-        showProductsButton.addEventListener("click", event => {
-            event.stopPropagation();
-            let userToken = localStorage.getItem("user_token");
-            let contentDiv = document.getElementById("content-div");
-            fetch("/api/products/", {headers: {"Authorization": userToken}})
+        let contentDiv = document.getElementById("content-div");
+        let userToken = localStorage.getItem("user_token");
+
+        function createContentTable(data, columnTitles, columnKeys) {
+            let table = document.createElement("table");
+            table.className = "content-table";
+            table.id = "content-table";
+
+            //Формируем строку заголовка таблицы
+            let tableHeader = "";
+            for (let columnTitle of columnTitles) {
+                tableHeader += `<th>${columnTitle}</th>`;
+            }
+            tableHeader = `<tr>${tableHeader}</tr>`;
+
+            //Формируем тело таблицы
+            let tableRow = "", tableRows = "";
+            for (let dataElement of data) {
+                for (let columnKey of columnKeys) {
+                    tableRow += `<td>${dataElement[columnKey] ? dataElement[columnKey] : "- нет -"}</td>`
+                }
+                tableRows += `<tr>${tableRow}</tr>`;
+                tableRow = "";
+            }
+
+            table.innerHTML = `${tableHeader}${tableRows}`;
+            return table;
+        }
+
+        function showProducts(url) {
+            fetch(url, {headers: {"Authorization": userToken}})
                 .then(response => {
                     contentDiv.style.display = "block";
                     contentDiv.innerHTML = "";
@@ -81,29 +107,53 @@
                 })
                 .then(data => {
                     if (!data) return;
+                    let nextPage = data.next;
+                    let prevPage = data.previous;
                     let products = data.results;
 
-                    //Формируем строку заголовка таблицы
-                    let columnTitles = ["Номер", "Наименование", "Описание", "Цена", "Дата создания", "Дата изменения"];
-                    let tableHeader = "";
-                    for (let columnTitle of columnTitles) {
-                        tableHeader += `<td>${columnTitle}</td>`;
-                    }
-                    tableHeader = `<tr>${tableHeader}</tr>`;
-
-                    //Формируем тело таблицы
-                    let tableData = "", tableRow = "", tableRows = "";
-                    let dataKeys = ["id", "title", "description", "price", "dt_created", "dt_updated"];
+                    let dateExp = /(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d:\d\d)/;
                     for (let product of products) {
-                        for (let key of dataKeys) {
-                            tableRow += `<td>${product[key] ? product[key] : "- нет -"}</td>`
-                        }
-                        tableRows += `<tr>${tableRow}</tr>`;
-                        tableRow = "";
+                        let [_, year, month, day, time] = dateExp.exec(product.dt_created);
+                        product.dt_created = `${day}.${month}.${year} ${time}`;
+                        [_, year, month, day, time] = dateExp.exec(product.dt_updated);
+                        product.dt_updated = `${day}.${month}.${year} ${time}`;
                     }
-                    tableData = `<table class="data-table">${tableHeader}${tableRows}</table>`;
-                    contentDiv.innerHTML = tableData;
+
+                    let columnTitles = ["Номер", "Наименование", "Описание", "Цена", "Дата создания", "Дата изменения"];
+                    let columnKeys = ["id", "title", "description", "price", "dt_created", "dt_updated"];
+                    let table = createContentTable(products, columnTitles, columnKeys)
+                    contentDiv.append(table);
+
+                    if (nextPage || prevPage) {
+                        let navigationDiv = document.createElement("div");
+                        navigationDiv.style.cssText = "display: flex; justify-content: center";
+                        if (prevPage) {
+                            let prevButton = document.createElement("span");
+                            prevButton.className = "navigation-button";
+                            prevButton.innerText = "Предыдущая страница";
+                            prevButton.addEventListener("click", event => {
+                                showProducts(prevPage)
+                            })
+                            navigationDiv.append(prevButton)
+                        }
+                        if (nextPage) {
+                            let nextButton = document.createElement("span");
+                            nextButton.className = "navigation-button";
+                            nextButton.innerText = "Следующая страница";
+                            nextButton.addEventListener("click", event => {
+                                showProducts(nextPage)
+                            })
+                            navigationDiv.append(nextButton)
+                        }
+                        contentDiv.append(navigationDiv);
+                    }
                 })
+        }
+
+        showProductsButton.addEventListener("click", event => {
+            event.stopPropagation();
+            showProducts("/api/products/");
         })
+
     </script>
 {% endblock %}
