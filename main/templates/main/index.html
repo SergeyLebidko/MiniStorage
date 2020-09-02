@@ -70,18 +70,31 @@
     <div class="modal-div" id="product-editor">
         <div class="modal-content-div">
             <div style="display: flex; justify-content: flex-end">
-                <span class="close-button" id="close-product-detail-button">Закрыть</span>
+                <span class="close-button" id="close-product-detail-button">X</span>
             </div>
-            <p id="product-details">
-                Список значенией полей
-            </p>
+            <div id="product-details">
+                <form id="product-form">
+                    Номер: <span id="product-number"></span><br><br>
+                    Дата создания: <span id="product-dt-created"></span><br><br>
+                    Дата изменения <span id="product-dt-updated"></span><br><br>
+                    Наименование:<br><input type="text" name="product-title" id="product-title" value=""
+                                            style="width: 500px"><br><br>
+                    Описание:<br><input type="text" name="product-description" id="product-description" value=""
+                                        style="width: 500px"><br>
+                </form>
+            </div>
+            <br>
+            <div style="display: flex; justify-content: flex-end">
+                <span class="span-button" id="product-cancel-button">Отмена</span>
+                <span class="span-button" id="product-save-button">Сохранить</span>
+            </div>
         </div>
     </div>
 
     <script>
+        const userToken = localStorage.getItem("user_token");
         const showProductsButton = document.getElementById("show-products-button");
         const contentDiv = document.getElementById("content-div");
-        const userToken = localStorage.getItem("user_token");
         let currentContent = null;
 
         function createContentTable(data, columnTitles, columnKeys) {
@@ -149,7 +162,7 @@
                         navigationDiv.style.cssText = "display: flex; justify-content: center";
                         if (prevPage) {
                             let prevButton = document.createElement("span");
-                            prevButton.className = "navigation-button";
+                            prevButton.className = "span-button";
                             prevButton.innerText = "Предыдущая страница";
                             prevButton.addEventListener("click", () => {
                                 showProducts(prevPage)
@@ -158,7 +171,7 @@
                         }
                         if (nextPage) {
                             let nextButton = document.createElement("span");
-                            nextButton.className = "navigation-button";
+                            nextButton.className = "span-button";
                             nextButton.innerText = "Следующая страница";
                             nextButton.addEventListener("click", () => {
                                 showProducts(nextPage)
@@ -180,11 +193,19 @@
             let productEditor = document.getElementById("product-editor");
             productEditor.style.display = "block";
 
-            let closeProductDetailButton = document.getElementById("close-product-detail-button");
-            closeProductDetailButton.addEventListener("click", () => {
+            function closeModal() {
                 document.body.style.overflow = "auto";
                 productEditor.style.display = "none";
-            });
+            }
+
+            let closeProductDetailButton = document.getElementById("close-product-detail-button");
+            let cancelProductDetailButton = document.getElementById("product-cancel-button");
+            let saveProductDetailButton = document.getElementById("product-save-button");
+            closeProductDetailButton.addEventListener("click", closeModal);
+            cancelProductDetailButton.addEventListener("click", closeModal)
+            saveProductDetailButton.addEventListener("click", () => {
+                alert("Функциональность пока не реализована...")
+            })
 
             document.body.style.overflow = "hidden";
 
@@ -196,14 +217,17 @@
                 }
             }
 
-            let productDetails = document.getElementById("product-details");
-            let detailsContent = "";
-            detailsContent += `<p>Номер: ${selectedProduct.id}</p>`;
-            detailsContent += `<p>Дата создания: ${selectedProduct.dt_created}</p>`;
-            detailsContent += `<p>Дата изменения: ${selectedProduct.dt_updated}</p>`;
-            detailsContent += `<p>Наименование:<br> ${selectedProduct.title}</p>`;
-            detailsContent += `<p>Описание:<br> ${selectedProduct.description ? selectedProduct.description : "- нет -"}</p>`;
-            productDetails.innerHTML = detailsContent;
+            let productNumberSpan = document.getElementById("product-number");
+            productNumberSpan.innerText = selectedProduct.id;
+            let productDtCreatedSpan = document.getElementById("product-dt-created");
+            productDtCreatedSpan.innerText = selectedProduct.dt_created;
+            let productDtUpdatedSpan = document.getElementById("product-dt-updated");
+            productDtUpdatedSpan.innerText = selectedProduct.dt_updated;
+
+            let productTitleTextField = document.getElementById("product-title");
+            productTitleTextField.value = selectedProduct.title;
+            let productDescriptionTextField = document.getElementById("product-description");
+            productDescriptionTextField.value = selectedProduct.description;
         }
 
         showProductsButton.addEventListener("click", () => showProducts("/api/products/"))

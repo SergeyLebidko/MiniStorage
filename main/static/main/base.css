@@ -142,17 +142,17 @@ input[type=text], input[type=password] {
     padding: 5px 5px 10px 10px;
 }
 
-.navigation-button {
+.span-button {
     background-color: RGB(150, 150, 150);
     color: white;
-    margin: 10px;
+    margin: 5px;
     padding: 7px 10px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
 }
 
-.navigation-button:hover {
+.span-button:hover {
     background: RGB(80, 75, 200);
 }
 
@@ -171,7 +171,7 @@ input[type=text], input[type=password] {
 }
 
 .modal-content-div {
-    width: 450px;
+    width: 550px;
     margin: 200px auto;
 }
 
@@ -181,6 +181,7 @@ input[type=text], input[type=password] {
     background: RGB(150, 150, 150);
     color: white;
     border-radius: 4px;
+    font-size: 15px;
 }
 
 .close-button:hover {
