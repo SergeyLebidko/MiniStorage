@@ -67,9 +67,14 @@
 
     <div class="content-div" id="content-div"></div>
 
-    <div class="modal-div" id="product-editor" style="display: none">
-        <div class="login-div">
-            Привет!
+    <div class="modal-div" id="product-editor">
+        <div class="modal-content-div">
+            <div style="display: flex; justify-content: flex-end">
+                <span class="close-button" id="close-product-detail-button">Закрыть</span>
+            </div>
+            <p id="product-details">
+                Список значенией полей
+            </p>
         </div>
     </div>
 
@@ -77,6 +82,7 @@
         const showProductsButton = document.getElementById("show-products-button");
         const contentDiv = document.getElementById("content-div");
         const userToken = localStorage.getItem("user_token");
+        let currentContent = null;
 
         function createContentTable(data, columnTitles, columnKeys) {
             let table = document.createElement("table");
@@ -136,6 +142,8 @@
                     table.addEventListener("click", productClick);
                     contentDiv.append(table);
 
+                    currentContent = products;
+
                     if (nextPage || prevPage) {
                         let navigationDiv = document.createElement("div");
                         navigationDiv.style.cssText = "display: flex; justify-content: center";
@@ -171,7 +179,31 @@
 
             let productEditor = document.getElementById("product-editor");
             productEditor.style.display = "block";
+
+            let closeProductDetailButton = document.getElementById("close-product-detail-button");
+            closeProductDetailButton.addEventListener("click", () => {
+                document.body.style.overflow = "auto";
+                productEditor.style.display = "none";
+            });
+
             document.body.style.overflow = "hidden";
+
+            let selectedProduct = null;
+            for (let product of currentContent) {
+                if (product.id == productId) {
+                    selectedProduct = product;
+                    break;
+                }
+            }
+
+            let productDetails = document.getElementById("product-details");
+            let detailsContent = "";
+            detailsContent += `<p>Номер: ${selectedProduct.id}</p>`;
+            detailsContent += `<p>Дата создания: ${selectedProduct.dt_created}</p>`;
+            detailsContent += `<p>Дата изменения: ${selectedProduct.dt_updated}</p>`;
+            detailsContent += `<p>Наименование:<br> ${selectedProduct.title}</p>`;
+            detailsContent += `<p>Описание:<br> ${selectedProduct.description ? selectedProduct.description : "- нет -"}</p>`;
+            productDetails.innerHTML = detailsContent;
         }
 
         showProductsButton.addEventListener("click", () => showProducts("/api/products/"))
