@@ -1,0 +1,29 @@
+.content-div {
+    position: relative;
+    top: 95px
+}
+
+.content-table th {
+    background: RGB(150, 150, 150);
+    color: white;
+    height: 30px;
+    text-align: center;
+    padding: 5px 5px 10px 10px;
+}
+
+.content-table tr:nth-child(even) {
+    background: RGB(190, 190, 190);
+}
+
+.content-table tr:nth-child(odd) {
+    background: RGB(210, 210, 210);
+}
+
+.content-table tr:hover {
+    background: RGB(180, 180, 250);
+    cursor: pointer;
+}
+
+.content-table td {
+    padding: 5px 5px 10px 10px;
+}
