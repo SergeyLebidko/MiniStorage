@@ -132,6 +132,33 @@
             return table;
         }
 
+        function createNavigationDiv(nextPage, prevPage) {
+            if (nextPage || prevPage) {
+                let navigationDiv = document.createElement("div");
+                navigationDiv.className = "navigation-div";
+                if (prevPage) {
+                    let prevButton = document.createElement("span");
+                    prevButton.className = "span-button";
+                    prevButton.innerText = "Предыдущая страница";
+                    prevButton.addEventListener("click", () => {
+                        showProducts(prevPage)
+                    });
+                    navigationDiv.append(prevButton)
+                }
+                if (nextPage) {
+                    let nextButton = document.createElement("span");
+                    nextButton.className = "span-button";
+                    nextButton.innerText = "Следующая страница";
+                    nextButton.addEventListener("click", () => {
+                        showProducts(nextPage)
+                    });
+                    navigationDiv.append(nextButton)
+                }
+                return navigationDiv;
+            }
+            return null;
+        }
+
         function showProducts(url) {
             fetch(url, {headers: {"Authorization": userToken}})
                 .then(response => {
@@ -144,6 +171,7 @@
                     let nextPage = data.next;
                     let prevPage = data.previous;
                     let products = data.results;
+                    currentContent = products;
 
                     let dateExp = /(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d:\d\d)/;
                     for (let product of products) {
@@ -159,29 +187,8 @@
                     table.addEventListener("click", productClick);
                     contentDiv.append(table);
 
-                    currentContent = products;
-
-                    if (nextPage || prevPage) {
-                        let navigationDiv = document.createElement("div");
-                        navigationDiv.className = "navigation-div";
-                        if (prevPage) {
-                            let prevButton = document.createElement("span");
-                            prevButton.className = "span-button";
-                            prevButton.innerText = "Предыдущая страница";
-                            prevButton.addEventListener("click", () => {
-                                showProducts(prevPage)
-                            });
-                            navigationDiv.append(prevButton)
-                        }
-                        if (nextPage) {
-                            let nextButton = document.createElement("span");
-                            nextButton.className = "span-button";
-                            nextButton.innerText = "Следующая страница";
-                            nextButton.addEventListener("click", () => {
-                                showProducts(nextPage)
-                            });
-                            navigationDiv.append(nextButton)
-                        }
+                    let navigationDiv = createNavigationDiv(nextPage, prevPage);
+                    if (navigationDiv) {
                         contentDiv.append(navigationDiv);
                     }
                 })
