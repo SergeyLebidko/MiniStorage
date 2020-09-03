@@ -5,11 +5,21 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="{% static 'main/base.css' %}">
+    <link rel="stylesheet" href="{% static 'main/menu.css' %}">
     <script src="{% static 'main/jquery-3.5.1.js' %}"></script>
     <title>MiniStorage</title>
 </head>
 <body>
+{% block menu %}
+{% endblock %}
+
 {% block content %}
+{% endblock %}
+
+{% block modals %}
+{% endblock %}
+
+{% block scripts %}
 {% endblock %}
 </body>
 </html>

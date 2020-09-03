@@ -1,6 +1,6 @@
 {% extends 'main/base_templat.html' %}
 
-{% block content %}
+{% block menu %}
     <div id="menu-div">
         <div class="basic-div">
             <ul id="main-menu-bar">
@@ -64,9 +64,13 @@
             </ul>
         </div>
     </div>
+{% endblock %}
 
+{% block content %}
     <div class="content-div" id="content-div"></div>
+{% endblock %}
 
+{% block modals %}
     <div class="modal-div" id="product-editor">
         <div class="modal-content-div">
             <div style="display: flex; justify-content: flex-end">
@@ -90,7 +94,9 @@
             </div>
         </div>
     </div>
+{% endblock %}
 
+{% block scripts %}
     <script>
         const userToken = localStorage.getItem("user_token");
         const showProductsButton = document.getElementById("show-products-button");
