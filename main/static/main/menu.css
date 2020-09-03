@@ -1,0 +1,45 @@
+#menu {
+    border-radius: 4px;
+    list-style: none;
+    padding-left: 0;
+    background: RGB(150, 150, 150);
+    height: 30px;
+    margin: 10px;
+}
+
+#menu > li {
+    float: left;
+    position: relative;
+}
+
+#menu > li > ul {
+    list-style: none;
+    padding-left: 0;
+    position: absolute;
+    top: 30px;
+    display: none;
+}
+
+#menu > li:hover > ul {
+    display: block;
+    width: 250px;
+}
+
+#menu span {
+    border-radius: 4px;
+    background: RGB(150, 150, 150);
+    color: white;
+    padding: 0 15px;
+    line-height: 30px;
+    display: block;
+    cursor: pointer;
+}
+
+#menu span:hover {
+    background: RGB(80, 75, 200);
+}
+
+#menu a {
+    color: white;
+    text-decoration: none;
+}

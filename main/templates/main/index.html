@@ -1,64 +1,64 @@
 {% extends 'main/base_templat.html' %}
 
 {% block menu %}
-    <div id="menu-div">
+    <div id="header">
         <div class="basic-div">
-            <ul id="main-menu-bar">
-                <li class="main-menu-list-element">
-                <span class="menu-item">
+            <ul id="menu">
+                <li>
+                <span>
                     {% if user.first_name or user.last_name %}
                         {{ user.get_full_name }}
                     {% else %}
                         {{ user }}
                     {% endif %}
                 </span>
-                    <ul class="drop-down-menu">
-                        <li class="drop-down-menu-list-element">
-                        <span class="menu-item">
-                            <a class="menu-link" href="{% url 'logout' %}">Выйти</a>
+                    <ul>
+                        <li>
+                        <span>
+                            <a href="{% url 'logout' %}">Выйти</a>
                         </span>
                         </li>
                     </ul>
                 </li>
-                <li class="main-menu-list-element">
-                    <span class="menu-item">Справочники</span>
-                    <ul class="drop-down-menu">
-                        <li class="dropDownMenuListElement">
-                            <span class="menu-item" id="show-products-button">Товары</span>
+                <li>
+                    <span>Справочники</span>
+                    <ul>
+                        <li>
+                            <span id="show-products-button">Товары</span>
                         </li>
-                        <li class="drop-down-menu-list-element">
-                            <span class="menu-item">Контрагенты</span>
-                        </li>
-                    </ul>
-                </li>
-                <li class="main-menu-list-element">
-                    <span class="menu-item">Документы</span>
-                    <ul class="drop-down-menu">
-                        <li class="dropDownMenuListElement">
-                            <span class="menu-item">Приходные документы</span>
-                        </li>
-                        <li class="dropDownMenuListElement">
-                            <span class="menu-item">Расходные документы</span>
+                        <li>
+                            <span>Контрагенты</span>
                         </li>
                     </ul>
                 </li>
-                <li class="main-menu-list-element">
-                    <span class="menu-item">Отчеты</span>
-                    <ul class="drop-down-menu">
-                        <li class="dropDownMenuListElement">
-                            <span class="menu-item">Остатки товаров на складе</span>
+                <li>
+                    <span>Документы</span>
+                    <ul>
+                        <li>
+                            <span>Приходные документы</span>
                         </li>
-                        <li class="dropDownMenuListElement">
-                            <span class="menu-item">Движение в разрезе товаров</span>
-                        </li>
-                        <li class="dropDownMenuListElement">
-                            <span class="menu-item">Движение в разрезе контрагентов</span>
+                        <li>
+                            <span>Расходные документы</span>
                         </li>
                     </ul>
                 </li>
-                <li class="main-menu-list-element">
-                <span class="menu-item">
-                    <a class="menu-link" href="/admin/">Администрирование</a>
+                <li>
+                    <span>Отчеты</span>
+                    <ul>
+                        <li>
+                            <span>Остатки товаров на складе</span>
+                        </li>
+                        <li>
+                            <span>Движение в разрезе товаров</span>
+                        </li>
+                        <li>
+                            <span>Движение в разрезе контрагентов</span>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                <span>
+                    <a href="/admin/">Администрирование</a>
                 </span>
                 </li>
             </ul>

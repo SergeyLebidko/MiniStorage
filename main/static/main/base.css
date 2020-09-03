@@ -1,3 +1,25 @@
+.basic-div {
+    font-style: normal;
+    background-color: RGB(240, 240, 240);
+    border: 1px solid RGB(200, 200, 200);
+    border-radius: 4px;
+    margin: 10px auto;
+    width: 1000px;
+    padding: 10px;
+}
+
+#header {
+    background: white;
+    position: fixed;
+    width: 100%;
+    height: 93px;
+    left: 0;
+    top: 0;
+    z-index: 1
+}
+
+/* ---------- */
+
 .basic-div, .login-div, .content-div, .modal-content-div {
     font-style: normal;
     background-color: RGB(240, 240, 240);
@@ -21,20 +43,6 @@
     margin: 200px auto;
 }
 
-input[type=submit] {
-    width: 100%;
-    background-color: RGB(150, 150, 150);
-    color: white;
-    padding: 7px 10px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-input[type=submit]:hover, input[type=submit]:focus {
-    background-color: RGB(80, 75, 200);
-}
-
 input[type=text], input[type=password] {
     width: 100%;
     padding: 6px 10px;
@@ -55,64 +63,6 @@ input[type=text], input[type=password] {
     color: red;
     width: 70%;
     margin: 5px auto;
-}
-
-/* Стили для главного меню */
-
-#menu-div {
-    background: white;
-    position: fixed;
-    width: 100%;
-    height: 93px;
-    left: 0;
-    top: 0;
-    z-index: 1
-}
-
-#main-menu-bar {
-    border-radius: 4px;
-    list-style: none; /* Убираем маркеры списка */
-    padding-left: 0; /* Убираем отступы */
-    background: RGB(150, 150, 150); /* Добавляем фон всему меню */
-    height: 30px; /* Задаем высоту */
-    margin: 10px;
-}
-
-.main-menu-list-element {
-    float: left; /* Размещаем список горизонтально для реализации меню */
-    position: relative; /* Задаем позицию для позиционирования */
-}
-
-.menu-item {
-    border-radius: 4px;
-    background: RGB(150, 150, 150); /* Добавляем фон к пункту меню */
-    color: white; /* Меняем цвет текста */
-    padding: 0 15px; /* Добавляем отступ */
-    line-height: 30px; /* Ровняем меню по вертикали */
-    display: block;
-    cursor: pointer;
-}
-
-.menu-item:hover {
-    background: RGB(80, 75, 200); /* Добавляем эффект при наведении */
-}
-
-.menu-link {
-    color: white;
-    text-decoration: none;
-}
-
-.drop-down-menu {
-    list-style: none; /* Убираем маркеры списка */
-    padding-left: 0; /* Убираем отступы */
-    position: absolute;
-    top: 30px;
-    display: none;
-}
-
-.main-menu-list-element:hover > .drop-down-menu {
-    display: block;
-    width: 250px; /* Задаем ширину выпадающего меню */
 }
 
 /* Стили для таблиц с данными */
@@ -142,19 +92,7 @@ input[type=text], input[type=password] {
     padding: 5px 5px 10px 10px;
 }
 
-.span-button {
-    background-color: RGB(150, 150, 150);
-    color: white;
-    margin: 5px;
-    padding: 7px 10px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
 
-.span-button:hover {
-    background: RGB(80, 75, 200);
-}
 
 /* Стили для модальных окон */
 
