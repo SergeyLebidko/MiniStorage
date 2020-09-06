@@ -97,58 +97,46 @@
 {% block scripts %}
     <script>
         const userToken = localStorage.getItem("user_token");
-        const showProductsButton = document.getElementById("show-products-button");
-        const contentDiv = document.getElementById("content-div");
+        const showProductsButton = $("#show-products-button").get(0);
+        const contentDiv = $("#content-div").get(0);
         let currentContent = null;
 
         function createContentTable(data, columnTitles, columnKeys) {
-            let table = document.createElement("table");
-            table.className = "content-table";
-            table.id = "content-table";
+            let $table = $("<table>", {"id": "content-table"}).addClass("content-table");
 
             //Формируем строку заголовка таблицы
-            let tableHeader = document.createElement("tr");
+            let $tableHeader = $("<tr>");
             let headerHTML = "";
             for (let columnTitle of columnTitles) {
                 headerHTML += `<th>${columnTitle}</th>`;
             }
-            tableHeader.innerHTML = headerHTML;
-            table.append(tableHeader);
+            $tableHeader.html(headerHTML);
+            $table.append($tableHeader);
 
             //Формируем тело таблицы
-            let cells = "";
-            let tableRow = null;
             for (let dataElement of data) {
+                let $tableRow = $("<tr>").data("element", dataElement);
                 for (let columnKey of columnKeys) {
-                    cells += `<td>${dataElement[columnKey] ? dataElement[columnKey] : "- нет -"}</td>`
+                    $tableRow.append($("<td>").text(dataElement[columnKey] ? dataElement[columnKey] : "- нет -"));
                 }
-                tableRow = document.createElement("tr");
-                tableRow.setAttribute("obj-id", dataElement.id);
-                tableRow.innerHTML = cells;
-                table.append(tableRow);
-                cells = "";
+                $table.append($tableRow);
             }
 
-            return table;
+            return $table.get(0);
         }
 
         function createNavigationDiv(nextPage, prevPage) {
             if (nextPage || prevPage) {
-                let navigationDiv = document.createElement("div");
-                navigationDiv.className = "navigation-div";
+                let navigationDiv = $("<div>", {"class": "navigation-div"}).get(0);
                 if (prevPage) {
-                    let prevButton = document.createElement("span");
-                    prevButton.className = "span-button";
-                    prevButton.innerText = "Предыдущая страница";
+                    let prevButton = $("<div>", {"class": "span-button"}).text("Предыдущая страница").get(0);
                     prevButton.addEventListener("click", () => {
                         showProducts(prevPage)
                     });
                     navigationDiv.append(prevButton)
                 }
                 if (nextPage) {
-                    let nextButton = document.createElement("span");
-                    nextButton.className = "span-button";
-                    nextButton.innerText = "Следующая страница";
+                    let nextButton = $("<div>", {"class": "span-button"}).text("Следующая страница").get(0);
                     nextButton.addEventListener("click", () => {
                         showProducts(nextPage)
                     });
@@ -163,7 +151,7 @@
             fetch(url, {headers: {"Authorization": userToken}})
                 .then(response => {
                     contentDiv.style.display = "block";
-                    contentDiv.innerHTML = "";
+                    $(contentDiv).html("");
                     return response.json()
                 })
                 .then(data => {
@@ -173,6 +161,7 @@
                     let products = data.results;
                     currentContent = products;
 
+                    //Приводим даты к более читаемому виду
                     let dateExp = /(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d:\d\d)/;
                     for (let product of products) {
                         let [_, year, month, day, time] = dateExp.exec(product.dt_created);
@@ -181,12 +170,21 @@
                         product.dt_updated = `${day}.${month}.${year} ${time}`;
                     }
 
+                    //Создаем панель с доступными операциями
+                    let operationDiv = $("<div>", {"class": "operation-div"}).append($("<a>", {
+                        "href": "/products_to_xls/",
+                        "class": "anchor-button"
+                    }).text("Скачать в формате XLS")).get(0);
+                    contentDiv.append(operationDiv)
+
+                    //Создаем таблицу со списком товаров
                     let columnTitles = ["Номер", "Наименование", "Описание", "Цена", "Дата создания", "Дата изменения"];
                     let columnKeys = ["id", "title", "description", "price", "dt_created", "dt_updated"];
-                    let table = createContentTable(products, columnTitles, columnKeys, productClick);
+                    let table = createContentTable(products, columnTitles, columnKeys);
                     table.addEventListener("click", productClick);
                     contentDiv.append(table);
 
+                    //Добавляем панель навигации для перехода по страницам
                     let navigationDiv = createNavigationDiv(nextPage, prevPage);
                     if (navigationDiv) {
                         contentDiv.append(navigationDiv);
@@ -197,9 +195,6 @@
         function productClick(event) {
             let row = event.target.closest("tr");
             if (!row) return;
-
-            let productId = row.getAttribute("obj-id");
-            if (!productId) return;
 
             let productEditor = document.getElementById("product-editor");
             productEditor.style.display = "block";
@@ -220,25 +215,13 @@
 
             document.body.style.overflow = "hidden";
 
-            let selectedProduct = null;
-            for (let product of currentContent) {
-                if (product.id == productId) {
-                    selectedProduct = product;
-                    break;
-                }
-            }
+            let selectedProduct = $.data(row, "element");
 
-            let productNumberSpan = document.getElementById("product-number");
-            productNumberSpan.innerText = selectedProduct.id;
-            let productDtCreatedSpan = document.getElementById("product-dt-created");
-            productDtCreatedSpan.innerText = selectedProduct.dt_created;
-            let productDtUpdatedSpan = document.getElementById("product-dt-updated");
-            productDtUpdatedSpan.innerText = selectedProduct.dt_updated;
-
-            let productTitleTextField = document.getElementById("product-title");
-            productTitleTextField.value = selectedProduct.title;
-            let productDescriptionTextField = document.getElementById("product-description");
-            productDescriptionTextField.innerText = selectedProduct.description;
+            $("#product-number").text(selectedProduct.id);
+            $("#product-dt-created").text(selectedProduct.dt_created);
+            $("#product-dt-updated").text(selectedProduct.dt_updated);
+            $("#product-title").val(selectedProduct.title);
+            $("#product-description").text(selectedProduct.description);
         }
 
         showProductsButton.addEventListener("click", () => showProducts("/api/products/"))

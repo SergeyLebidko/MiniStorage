@@ -3,6 +3,11 @@
     top: 95px
 }
 
+.operation-div {
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
 .navigation-div {
     display: flex;
     justify-content: center
