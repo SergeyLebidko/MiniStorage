@@ -16,6 +16,7 @@ from .serializers import ProductSerializer
 from .authentication import TokenAuthentication
 from .pagination import CustomPagination
 from .models import Product, Token
+from .utils import get_tmp_file_path, check_tmp_folder
 
 
 class Login(LoginView):
@@ -66,12 +67,13 @@ def products_to_xls(request):
     work_sheet.column_dimensions[get_column_letter(5)].width = 25
 
     # Сохраняем данные во временный файл, затем отдаем содержимое файла клиенту. Сам файл удаляем
-    tmp_file_name = str(settings.BASE_DIR) + '/test.xlsx'
-    work_book.save(tmp_file_name)
+    check_tmp_folder()
+    tmp_file_path = get_tmp_file_path('products.xlsx')
+    work_book.save(tmp_file_path)
 
-    with open(tmp_file_name, 'rb') as file:
+    with open(tmp_file_path, 'rb') as file:
         bio = BytesIO(file.read())
-    os.remove(tmp_file_name)
+    os.remove(tmp_file_path)
 
     return FileResponse(
         bio,
