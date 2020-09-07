@@ -97,20 +97,19 @@
 {% block scripts %}
     <script>
         const userToken = localStorage.getItem("user_token");
-        const showProductsButton = $("#show-products-button").get(0);
-        const contentDiv = $("#content-div").get(0);
+        const $contentDiv = $("#content-div");
         let currentContent = null;
+
+        $("#show-products-button").on("click", () => showProducts("/api/products/"));
 
         function createContentTable(data, columnTitles, columnKeys) {
             let $table = $("<table>", {"id": "content-table"}).addClass("content-table");
 
             //Формируем строку заголовка таблицы
             let $tableHeader = $("<tr>");
-            let headerHTML = "";
             for (let columnTitle of columnTitles) {
-                headerHTML += `<th>${columnTitle}</th>`;
+                $tableHeader.append($("<th>").text(columnTitle));
             }
-            $tableHeader.html(headerHTML);
             $table.append($tableHeader);
 
             //Формируем тело таблицы
@@ -121,28 +120,27 @@
                 }
                 $table.append($tableRow);
             }
-
-            return $table.get(0);
+            return $table;
         }
 
         function createNavigationDiv(nextPage, prevPage) {
             if (nextPage || prevPage) {
-                let navigationDiv = $("<div>", {"class": "navigation-div"}).get(0);
+                let $navigationDiv = $("<div>", {"class": "navigation-div"});
                 if (prevPage) {
-                    let prevButton = $("<div>", {"class": "span-button"}).text("Предыдущая страница").get(0);
-                    prevButton.addEventListener("click", () => {
-                        showProducts(prevPage)
-                    });
-                    navigationDiv.append(prevButton)
+                    $navigationDiv.append(
+                        $("<div>", {"class": "span-button"})
+                            .text("Предыдущая страница")
+                            .on("click", () => showProducts(prevPage))
+                    )
                 }
                 if (nextPage) {
-                    let nextButton = $("<div>", {"class": "span-button"}).text("Следующая страница").get(0);
-                    nextButton.addEventListener("click", () => {
-                        showProducts(nextPage)
-                    });
-                    navigationDiv.append(nextButton)
+                    $navigationDiv.append(
+                        $("<div>", {"class": "span-button"})
+                            .text("Следующая страница")
+                            .on("click", () => showProducts(nextPage))
+                    )
                 }
-                return navigationDiv;
+                return $navigationDiv;
             }
             return null;
         }
@@ -150,8 +148,8 @@
         function showProducts(url) {
             fetch(url, {headers: {"Authorization": userToken}})
                 .then(response => {
-                    contentDiv.style.display = "block";
-                    $(contentDiv).html("");
+                    $contentDiv.css("display", "block");
+                    $contentDiv.html("");
                     return response.json()
                 })
                 .then(data => {
@@ -171,23 +169,24 @@
                     }
 
                     //Создаем панель с доступными операциями
-                    let operationDiv = $("<div>", {"class": "operation-div"}).append($("<a>", {
+                    let $operationDiv = $("<div>", {"class": "operation-div"});
+                    $operationDiv.append($("<a>", {
                         "href": "/products_to_xls/",
                         "class": "anchor-button"
-                    }).text("Скачать в формате XLS")).get(0);
-                    contentDiv.append(operationDiv)
+                    }).text("Скачать в формате XLS"));
+                    $contentDiv.append($operationDiv)
 
                     //Создаем таблицу со списком товаров
                     let columnTitles = ["Номер", "Наименование", "Описание", "Цена", "Дата создания", "Дата изменения"];
                     let columnKeys = ["id", "title", "description", "price", "dt_created", "dt_updated"];
-                    let table = createContentTable(products, columnTitles, columnKeys);
-                    table.addEventListener("click", productClick);
-                    contentDiv.append(table);
+                    let $table = createContentTable(products, columnTitles, columnKeys);
+                    $table.on("click", productClick);
+                    $contentDiv.append($table);
 
                     //Добавляем панель навигации для перехода по страницам
-                    let navigationDiv = createNavigationDiv(nextPage, prevPage);
-                    if (navigationDiv) {
-                        contentDiv.append(navigationDiv);
+                    let $navigationDiv = createNavigationDiv(nextPage, prevPage);
+                    if ($navigationDiv) {
+                        $contentDiv.append($navigationDiv);
                     }
                 })
         }
@@ -196,35 +195,25 @@
             let row = event.target.closest("tr");
             if (!row) return;
 
-            let productEditor = document.getElementById("product-editor");
-            productEditor.style.display = "block";
+            let $productEditor = $("#product-editor");
+            $productEditor.css("display", "block");
 
             function closeModal() {
                 document.body.style.overflow = "auto";
-                productEditor.style.display = "none";
+                $productEditor.css("display", "none");
             }
 
-            let closeProductDetailButton = document.getElementById("product-editor-close-button");
-            let cancelProductDetailButton = document.getElementById("product-editor-cancel-button");
-            let saveProductDetailButton = document.getElementById("product-editor-save-button");
-            closeProductDetailButton.addEventListener("click", closeModal);
-            cancelProductDetailButton.addEventListener("click", closeModal)
-            saveProductDetailButton.addEventListener("click", () => {
-                alert("Функциональность пока не реализована...")
-            })
+            $("#product-editor-close-button, #product-editor-cancel-button").on("click", closeModal);
+            $("#product-editor-save-button").on("click", () => alert("Функциональность пока не реализована..."));
 
             document.body.style.overflow = "hidden";
 
             let selectedProduct = $.data(row, "element");
-
             $("#product-number").text(selectedProduct.id);
             $("#product-dt-created").text(selectedProduct.dt_created);
             $("#product-dt-updated").text(selectedProduct.dt_updated);
             $("#product-title").val(selectedProduct.title);
             $("#product-description").text(selectedProduct.description);
         }
-
-        showProductsButton.addEventListener("click", () => showProducts("/api/products/"))
-
     </script>
 {% endblock %}
