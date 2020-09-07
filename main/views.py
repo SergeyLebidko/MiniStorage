@@ -5,6 +5,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.http.response import FileResponse
+from rest_framework.filters import SearchFilter
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from openpyxl import Workbook
@@ -87,4 +88,6 @@ class ProductViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPagination
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    filter_backends = [SearchFilter]
+    search_fields = ['title']
     queryset = Product.objects.all()
