@@ -130,14 +130,16 @@
                 let $navigationDiv = $("<div>", {"class": "navigation-div"});
                 if (prevPage) {
                     $navigationDiv.append(
-                        $("<div>", {"class": "span-button"})
+                        $("<span>")
+                            .addClass("span-button")
                             .text("Предыдущая страница")
                             .on("click", () => showFunc(prevPage))
                     )
                 }
                 if (nextPage) {
                     $navigationDiv.append(
-                        $("<div>", {"class": "span-button"})
+                        $("<div>")
+                            .addClass("span-button")
                             .text("Следующая страница")
                             .on("click", () => showFunc(nextPage))
                     )
@@ -181,11 +183,10 @@
                     }
 
                     //Создаем панель с доступными операциями
-                    let $operationDiv = $("<div>", {"class": "operation-div"});
-                    $operationDiv.append($("<a>", {
-                        "href": "/products_to_xls/",
-                        "class": "anchor-button"
-                    }).text("Скачать в формате XLS"));
+                    let $operationDiv = $("<div>").addClass("operation-div");
+                    $operationDiv.append($("<a>", {"href": "/products_to_xls/"})
+                        .addClass("anchor-button")
+                        .text("Скачать в формате XLS"));
                     $contentDiv.append($operationDiv)
 
                     //Создаем таблицу со списком товаров
@@ -207,9 +208,10 @@
             let row = event.target.closest("tr");
             if (!row) return;
 
-            showModal($productEditor);
-
             let selectedProduct = $.data(row, "element");
+            if (!selectedProduct) return;
+
+            showModal($productEditor);
             $("#product-number").text(selectedProduct.id);
             $("#product-dt-created").text(selectedProduct.dt_created);
             $("#product-dt-updated").text(selectedProduct.dt_updated);
