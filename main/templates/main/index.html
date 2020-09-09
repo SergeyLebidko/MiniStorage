@@ -98,9 +98,11 @@
     <script>
         const userToken = localStorage.getItem("user_token");
         const $contentDiv = $("#content-div");
+        const $productEditor = $("#product-editor");
         let currentContent = null;
 
         $("#show-products-button").on("click", () => showProducts("/api/products/"));
+        $("#product-editor-close-button, #product-editor-cancel-button").on("click", () => closeModal($productEditor));
 
         function createContentTable(data, columnTitles, columnKeys) {
             let $table = $("<table>", {"id": "content-table"}).addClass("content-table");
@@ -116,28 +118,28 @@
             for (let dataElement of data) {
                 let $tableRow = $("<tr>").data("element", dataElement);
                 for (let columnKey of columnKeys) {
-                    $tableRow.append($("<td>").text(dataElement[columnKey] ? dataElement[columnKey] : "- нет -"));
+                    $tableRow.append($("<td>").text(dataElement[columnKey]));
                 }
                 $table.append($tableRow);
             }
             return $table;
         }
 
-        function createNavigationDiv(nextPage, prevPage) {
+        function createNavigationDiv(nextPage, prevPage, showFunc) {
             if (nextPage || prevPage) {
                 let $navigationDiv = $("<div>", {"class": "navigation-div"});
                 if (prevPage) {
                     $navigationDiv.append(
                         $("<div>", {"class": "span-button"})
                             .text("Предыдущая страница")
-                            .on("click", () => showProducts(prevPage))
+                            .on("click", () => showFunc(prevPage))
                     )
                 }
                 if (nextPage) {
                     $navigationDiv.append(
                         $("<div>", {"class": "span-button"})
                             .text("Следующая страница")
-                            .on("click", () => showProducts(nextPage))
+                            .on("click", () => showFunc(nextPage))
                     )
                 }
                 return $navigationDiv;
@@ -145,11 +147,21 @@
             return null;
         }
 
+        function showModal($modal) {
+            document.body.style.overflow = "hidden";
+            $modal.css("display", "block");
+        }
+
+        function closeModal($modal) {
+            document.body.style.overflow = "auto";
+            $modal.css("display", "none");
+        }
+
         function showProducts(url) {
             fetch(url, {headers: {"Authorization": userToken}})
                 .then(response => {
                     $contentDiv.css("display", "block");
-                    $contentDiv.html("");
+                    $('*', $contentDiv).remove();
                     return response.json()
                 })
                 .then(data => {
@@ -184,7 +196,7 @@
                     $contentDiv.append($table);
 
                     //Добавляем панель навигации для перехода по страницам
-                    let $navigationDiv = createNavigationDiv(nextPage, prevPage);
+                    let $navigationDiv = createNavigationDiv(nextPage, prevPage, showProducts);
                     if ($navigationDiv) {
                         $contentDiv.append($navigationDiv);
                     }
@@ -195,18 +207,7 @@
             let row = event.target.closest("tr");
             if (!row) return;
 
-            let $productEditor = $("#product-editor");
-            $productEditor.css("display", "block");
-
-            function closeModal() {
-                document.body.style.overflow = "auto";
-                $productEditor.css("display", "none");
-            }
-
-            $("#product-editor-close-button, #product-editor-cancel-button").on("click", closeModal);
-            $("#product-editor-save-button").on("click", () => alert("Функциональность пока не реализована..."));
-
-            document.body.style.overflow = "hidden";
+            showModal($productEditor);
 
             let selectedProduct = $.data(row, "element");
             $("#product-number").text(selectedProduct.id);
@@ -214,6 +215,8 @@
             $("#product-dt-updated").text(selectedProduct.dt_updated);
             $("#product-title").val(selectedProduct.title);
             $("#product-description").text(selectedProduct.description);
+
+            $("#product-editor-save-button").off().on("click", () => alert("Функциональность пока не реализована..."));
         }
     </script>
 {% endblock %}
