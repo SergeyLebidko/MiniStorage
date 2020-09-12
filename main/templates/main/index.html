@@ -77,10 +77,11 @@
                 <span class="span-button" id="product-editor-close-button">X</span>
             </div>
             <div>
+                Номер: <span id="product-number"></span><br><br>
+                Дата создания: <span id="product-dt-created"></span><br><br>
+                Дата изменения <span id="product-dt-updated"></span><br><br>
                 <form id="product-form">
-                    Номер: <span id="product-number"></span><br><br>
-                    Дата создания: <span id="product-dt-created"></span><br><br>
-                    Дата изменения <span id="product-dt-updated"></span><br><br>
+                    Цена: <br><input type="text" name="product-price" id="product-price" value="0"><br><br>
                     Наименование:<br><input type="text" name="product-title" id="product-title" value=""><br><br>
                     Описание:<br><textarea name="product-description" id="product-description"></textarea>
                 </form>
@@ -96,12 +97,16 @@
 
 {% block scripts %}
     <script>
+        const apiProductsURL = "/api/products/";
+
         const userToken = localStorage.getItem("user_token");
+        $.ajaxSetup({"headers": {"Authorization": userToken}});
+
         const $contentDiv = $("#content-div");
         const $productEditor = $("#product-editor");
         let currentContent = null;
 
-        $("#show-products-button").on("click", () => showProducts("/api/products/"));
+        $("#show-products-button").on("click", () => showProducts(apiProductsURL));
         $("#product-editor-close-button, #product-editor-cancel-button").on("click", () => closeModal($productEditor));
 
         function createContentTable(data, columnTitles, columnKeys) {
@@ -160,17 +165,18 @@
         }
 
         function showProducts(url) {
-            fetch(url, {headers: {"Authorization": userToken}})
-                .then(response => {
+            $.ajax(url, {
+                "method": "GET",
+                "dataType": "json",
+                "success": function (data) {
+                    let products = data.results;
+                    if (products.length === 0) return;
+
                     $contentDiv.css("display", "block");
                     $('*', $contentDiv).remove();
-                    return response.json()
-                })
-                .then(data => {
-                    if (!data) return;
+
                     let nextPage = data.next;
                     let prevPage = data.previous;
-                    let products = data.results;
                     currentContent = products;
 
                     //Приводим даты к более читаемому виду
@@ -193,7 +199,7 @@
                     let columnTitles = ["Номер", "Наименование", "Описание", "Цена", "Дата создания", "Дата изменения"];
                     let columnKeys = ["id", "title", "description", "price", "dt_created", "dt_updated"];
                     let $table = createContentTable(products, columnTitles, columnKeys);
-                    $table.on("click", productClick);
+                    $table.on("click", "tr", productClick);
                     $contentDiv.append($table);
 
                     //Добавляем панель навигации для перехода по страницам
@@ -201,15 +207,15 @@
                     if ($navigationDiv) {
                         $contentDiv.append($navigationDiv);
                     }
-                })
+                }
+            })
         }
 
         function productClick(event) {
-            let row = event.target.closest("tr");
-            if (!row) return;
-
-            let selectedProduct = $.data(row, "element");
+            let selectedProduct = $.data(this, "element");
             if (!selectedProduct) return;
+
+            let $row = $(this);
 
             showModal($productEditor);
             $("#product-number").text(selectedProduct.id);
@@ -217,8 +223,31 @@
             $("#product-dt-updated").text(selectedProduct.dt_updated);
             $("#product-title").val(selectedProduct.title);
             $("#product-description").text(selectedProduct.description);
+            $("#product-price").val(selectedProduct.price);
 
-            $("#product-editor-save-button").off().on("click", () => alert("Функциональность пока не реализована..."));
+            $("#product-editor-save-button").off().on("click", () => {
+                let urlForRequest = `${apiProductsURL}${selectedProduct.id}/`;
+                $.ajax(urlForRequest, {
+                    "method": "PATCH",
+                    "data": {
+                        "title": $("#product-title").val(),
+                        "description": $("#product-description").val(),
+                        "price": $("#product-price").val()
+                    },
+                    "success": function (data) {
+                        $row.empty();
+                        $row.append($("<td>").text(data.id));
+                        $row.append($("<td>").text(data.title));
+                        $row.append($("<td>").text(data.description));
+                        $row.append($("<td>").text(data.price));
+                        $row.append($("<td>").text(data.dt_created));
+                        $row.append($("<td>").text(data.dt_updated));
+                        $row.data("element", data);
+
+                        closeModal($productEditor);
+                    }
+                })
+            });
         }
     </script>
 {% endblock %}
