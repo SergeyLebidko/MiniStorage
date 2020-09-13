@@ -169,15 +169,20 @@
                 "method": "GET",
                 "dataType": "json",
                 "success": function (data) {
-                    let products = data.results;
-                    if (products.length === 0) return;
-
                     $contentDiv.css("display", "block");
-                    $('*', $contentDiv).remove();
+                    $contentDiv.empty();
 
+                    let products = data.results;
                     let nextPage = data.next;
                     let prevPage = data.previous;
                     currentContent = products;
+
+                    //Создаем панель с доступными операциями
+                    let $operationDiv = $("<div>").addClass("operation-div");
+                    $operationDiv.append($("<a>", {"href": "/products_to_xls/"})
+                        .addClass("anchor-button")
+                        .text("Скачать в формате XLS"));
+                    $contentDiv.append($operationDiv)
 
                     //Приводим даты к более читаемому виду
                     let dateExp = /(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d:\d\d)/;
@@ -188,18 +193,11 @@
                         product.dt_updated = `${day}.${month}.${year} ${time}`;
                     }
 
-                    //Создаем панель с доступными операциями
-                    let $operationDiv = $("<div>").addClass("operation-div");
-                    $operationDiv.append($("<a>", {"href": "/products_to_xls/"})
-                        .addClass("anchor-button")
-                        .text("Скачать в формате XLS"));
-                    $contentDiv.append($operationDiv)
-
                     //Создаем таблицу со списком товаров
                     let columnTitles = ["Номер", "Наименование", "Описание", "Цена", "Дата создания", "Дата изменения"];
                     let columnKeys = ["id", "title", "description", "price", "dt_created", "dt_updated"];
                     let $table = createContentTable(products, columnTitles, columnKeys);
-                    $table.on("click", "tr", productClick);
+                    $table.on("click", "tr", productEdit);
                     $contentDiv.append($table);
 
                     //Добавляем панель навигации для перехода по страницам
@@ -211,7 +209,7 @@
             })
         }
 
-        function productClick(event) {
+        function productEdit(event) {
             let selectedProduct = $.data(this, "element");
             if (!selectedProduct) return;
 
@@ -226,6 +224,16 @@
             $("#product-price").val(selectedProduct.price);
 
             $("#product-editor-save-button").off().on("click", () => {
+                //Проверяем корректность внесения данных
+                if ($("#product-title").val().trim().length === 0) {
+                    alert("Наименование не может быть пустым!");
+                    return
+                }
+                if (!/^\d+$/.test($("#product-price").val())) {
+                    alert("Поле цены заполнено некорректно!");
+                    return;
+                }
+
                 let urlForRequest = `${apiProductsURL}${selectedProduct.id}/`;
                 $.ajax(urlForRequest, {
                     "method": "PATCH",
