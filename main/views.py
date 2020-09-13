@@ -3,7 +3,6 @@ from django.urls import reverse_lazy
 from django.shortcuts import render
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.decorators import login_required
-from django.conf import settings
 from django.http.response import FileResponse
 from rest_framework.filters import SearchFilter
 from rest_framework import viewsets
