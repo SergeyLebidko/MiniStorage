@@ -20,6 +20,7 @@ class Product(models.Model):
     price = models.IntegerField(verbose_name='Цена')
     dt_created = models.DateTimeField(verbose_name='Дата и время создания', auto_now_add=True)
     dt_updated = models.DateTimeField(verbose_name='Дата и время последнего изменения', auto_now=True)
+    to_remove = models.BooleanField(verbose_name='Помечен на удаление', null=False, default=False)
 
     def __str__(self):
         return self.title

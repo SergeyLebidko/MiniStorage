@@ -83,7 +83,8 @@
                 <form id="product-form">
                     Цена: <br><input type="text" name="product-price" id="product-price" value="0"><br><br>
                     Наименование:<br><input type="text" name="product-title" id="product-title" value=""><br><br>
-                    Описание:<br><textarea name="product-description" id="product-description"></textarea>
+                    Описание:<br><textarea name="product-description" id="product-description"></textarea><br><br>
+                    Пометить на удаление: <input type="checkbox" name="product-to-remove" id="product-to-remove">
                 </form>
             </div>
             <br>
@@ -120,10 +121,16 @@
             $table.append($tableHeader);
 
             //Формируем тело таблицы
+            let value;
             for (let dataElement of data) {
                 let $tableRow = $("<tr>").data("element", dataElement);
                 for (let columnKey of columnKeys) {
-                    $tableRow.append($("<td>").text(dataElement[columnKey]));
+                    if (typeof dataElement[columnKey] == "boolean") {
+                        value = dataElement[columnKey] ? "X" : "-";
+                    } else {
+                        value = dataElement[columnKey];
+                    }
+                    $tableRow.append($("<td>").text(value));
                 }
                 $table.append($tableRow);
             }
@@ -164,6 +171,20 @@
             $modal.css("display", "none");
         }
 
+        function formatDates(obj) {
+            //Приводим даты к более читаемому виду
+            let dateExp = /(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d:\d\d)/;
+            if ("dt_created" in obj) {
+                let [_, year, month, day, time] = dateExp.exec(obj.dt_created);
+                obj.dt_created = `${day}.${month}.${year} ${time}`;
+            }
+            if ("dt_updated" in obj) {
+                let [_, year, month, day, time] = dateExp.exec(obj.dt_updated);
+                obj.dt_updated = `${day}.${month}.${year} ${time}`;
+            }
+            return obj;
+        }
+
         function showProducts(url) {
             $.ajax(url, {
                 "method": "GET",
@@ -175,6 +196,11 @@
                     let products = data.results;
                     let nextPage = data.next;
                     let prevPage = data.previous;
+
+                    //Приводим даты к более читаемому виду
+                    for (let product of products) {
+                        formatDates(product);
+                    }
                     currentContent = products;
 
                     //Создаем панель с доступными операциями
@@ -184,18 +210,9 @@
                         .text("Скачать в формате XLS"));
                     $contentDiv.append($operationDiv)
 
-                    //Приводим даты к более читаемому виду
-                    let dateExp = /(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d:\d\d)/;
-                    for (let product of products) {
-                        let [_, year, month, day, time] = dateExp.exec(product.dt_created);
-                        product.dt_created = `${day}.${month}.${year} ${time}`;
-                        [_, year, month, day, time] = dateExp.exec(product.dt_updated);
-                        product.dt_updated = `${day}.${month}.${year} ${time}`;
-                    }
-
                     //Создаем таблицу со списком товаров
-                    let columnTitles = ["Номер", "Наименование", "Описание", "Цена", "Дата создания", "Дата изменения"];
-                    let columnKeys = ["id", "title", "description", "price", "dt_created", "dt_updated"];
+                    let columnTitles = ["Номер", "Наименование", "Описание", "Цена", "Дата создания", "Дата изменения", "Удл."];
+                    let columnKeys = ["id", "title", "description", "price", "dt_created", "dt_updated", "to_remove"];
                     let $table = createContentTable(products, columnTitles, columnKeys);
                     $table.on("click", "tr", productEdit);
                     $contentDiv.append($table);
@@ -222,6 +239,7 @@
             $("#product-title").val(selectedProduct.title);
             $("#product-description").text(selectedProduct.description);
             $("#product-price").val(selectedProduct.price);
+            $("#product-to-remove").prop("checked", selectedProduct.to_remove);
 
             $("#product-editor-save-button").off().on("click", () => {
                 //Проверяем корректность внесения данных
@@ -240,9 +258,12 @@
                     "data": {
                         "title": $("#product-title").val(),
                         "description": $("#product-description").val(),
-                        "price": $("#product-price").val()
+                        "price": $("#product-price").val(),
+                        "to_remove": $("#product-to-remove:checked").val() ? true : false
                     },
                     "success": function (data) {
+                        formatDates(data);
+
                         $row.empty();
                         $row.append($("<td>").text(data.id));
                         $row.append($("<td>").text(data.title));
@@ -250,6 +271,7 @@
                         $row.append($("<td>").text(data.price));
                         $row.append($("<td>").text(data.dt_created));
                         $row.append($("<td>").text(data.dt_updated));
+                        $row.append($("<td>").text(data.to_remove ? "X" : "-"));
                         $row.data("element", data);
 
                         closeModal($productEditor);
