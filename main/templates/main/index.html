@@ -81,8 +81,9 @@
                 Дата создания: <span id="product-dt-created"></span><br><br>
                 Дата изменения <span id="product-dt-updated"></span><br><br>
                 <form id="product-form">
-                    Цена: <br><input type="text" name="product-price" id="product-price" value="0"><br><br>
-                    Наименование:<br><input type="text" name="product-title" id="product-title" value=""><br><br>
+                    Цена: <br><input type="text" name="product-price" id="product-price" value="0" required><br><br>
+                    Наименование:<br><input type="text" name="product-title" id="product-title" value=""
+                                            required><br><br>
                     Описание:<br><textarea name="product-description" id="product-description"></textarea><br><br>
                     Пометить на удаление: <input type="checkbox" name="product-to-remove" id="product-to-remove">
                 </form>
@@ -185,6 +186,16 @@
             return obj;
         }
 
+        function checkProductFormData() {
+            //Проверяем корректность внесения данных
+            if ($("#product-title").val().trim().length === 0) {
+                throw new Error("Наименование не может быть пустым!");
+            }
+            if (!/^\d+$/.test($("#product-price").val())) {
+                throw new Error("Поле цены заполнено некорректно!");
+            }
+        }
+
         function showProducts(url) {
             $.ajax(url, {
                 "method": "GET",
@@ -208,6 +219,7 @@
                     $operationDiv.append($("<a>", {"href": "/products_to_xls/"})
                         .addClass("anchor-button")
                         .text("Скачать в формате XLS"));
+                    $operationDiv.append($("<span>").addClass("span-button").click(productCreate).text("Создать"));
                     $contentDiv.append($operationDiv)
 
                     //Создаем таблицу со списком товаров
@@ -241,14 +253,12 @@
             $("#product-price").val(selectedProduct.price);
             $("#product-to-remove").prop("checked", selectedProduct.to_remove);
 
-            $("#product-editor-save-button").off().on("click", () => {
-                //Проверяем корректность внесения данных
-                if ($("#product-title").val().trim().length === 0) {
-                    alert("Наименование не может быть пустым!");
-                    return
-                }
-                if (!/^\d+$/.test($("#product-price").val())) {
-                    alert("Поле цены заполнено некорректно!");
+            $("#product-editor-save-button").off().click(() => {
+                //Проверяем корректность внесения данных в форму
+                try {
+                    checkProductFormData();
+                } catch (error) {
+                    alert(error.message);
                     return;
                 }
 
@@ -278,6 +288,28 @@
                     }
                 })
             });
+        }
+
+        function productCreate(event) {
+            showModal($productEditor);
+
+            $("#product-number").text("-");
+            $("#product-dt-created").text("-");
+            $("#product-dt-updated").text("-");
+            $("#product-title").val("");
+            $("#product-description").text("");
+            $("#product-price").val("0");
+            $("#product-to-remove").prop("disabled", true);
+
+            $("#product-editor-save-button").off().click(() => {
+                try {
+                    checkProductFormData();
+                } catch (error) {
+                    alert(error.message)
+                    return;
+                }
+                alert("Функциональность пока не реализована");
+            })
         }
     </script>
 {% endblock %}
