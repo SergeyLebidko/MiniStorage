@@ -67,7 +67,15 @@
 {% endblock %}
 
 {% block content %}
-    <div class="basic-div content-div" id="content-div" style="display: none"></div>
+    <div class="basic-div content-div" id="content-div" style="display: none">
+        <div class="operation-div">
+            <a href="{% url 'products_to_xls' %}" class="anchor-button">Скачать в формате XLS</a>
+            <span class="span-button" id="create-product-button">Создать</span>
+            <input type="text" name="product-search-field" id="product-search-field" value="">
+            <span class="span-button" id="search-product-button">Найти</span>
+            <span class="span-button" id="clear-search-field-button">Очистить</span>
+        </div>
+    </div>
 {% endblock %}
 
 {% block modals %}
@@ -80,7 +88,7 @@
                 Номер: <span id="product-number"></span><br><br>
                 Дата создания: <span id="product-dt-created"></span><br><br>
                 Дата изменения <span id="product-dt-updated"></span><br><br>
-                <form id="product-form">
+                <form>
                     Цена: <br><input type="text" name="product-price" id="product-price" value="0" required><br><br>
                     Наименование:<br><input type="text" name="product-title" id="product-title" value=""
                                             required><br><br>
@@ -108,8 +116,13 @@
         const $productEditor = $("#product-editor");
         let currentContent = null;
 
-        $("#show-products-button").on("click", () => showProducts(apiProductsURL));
-        $("#product-editor-close-button, #product-editor-cancel-button").on("click", () => closeModal($productEditor));
+        $("#show-products-button, #clear-search-field-button").click(() => {
+            $("#product-search-field").val("");
+            showProducts(apiProductsURL)
+        });
+        $("#create-product-button").click(productCreate);
+        $("#search-product-button").click(productSearch);
+        $("#product-editor-close-button, #product-editor-cancel-button").click(() => closeModal($productEditor));
 
         function createContentTable(data, columnTitles, columnKeys) {
             let $table = $("<table>", {"id": "content-table"}).addClass("content-table");
@@ -202,25 +215,23 @@
                 "dataType": "json",
                 "success": function (data) {
                     $contentDiv.css("display", "block");
-                    $contentDiv.empty();
+                    $(".content-table, .navigation-div").remove();
 
-                    let products = data.results;
-                    let nextPage = data.next;
-                    let prevPage = data.previous;
+                    let products, nextPage, prevPage;
+                    if ("results" in data) {
+                        products = data.results;
+                        nextPage = data.next;
+                        prevPage = data.previous;
+                    } else {
+                        products = [data];
+                        nextPage = prevPage = null;
+                    }
 
                     //Приводим даты к более читаемому виду
                     for (let product of products) {
                         formatDates(product);
                     }
                     currentContent = products;
-
-                    //Создаем панель с доступными операциями
-                    let $operationDiv = $("<div>").addClass("operation-div");
-                    $operationDiv.append($("<a>", {"href": "/products_to_xls/"})
-                        .addClass("anchor-button")
-                        .text("Скачать в формате XLS"));
-                    $operationDiv.append($("<span>").addClass("span-button").click(productCreate).text("Создать"));
-                    $contentDiv.append($operationDiv)
 
                     //Создаем таблицу со списком товаров
                     let columnTitles = ["Номер", "Наименование", "Описание", "Цена", "Дата создания", "Дата изменения", "Удл."];
@@ -238,7 +249,7 @@
             })
         }
 
-        function productEdit(event) {
+        function productEdit() {
             let selectedProduct = $.data(this, "element");
             if (!selectedProduct) return;
 
@@ -265,6 +276,7 @@
                 let urlForRequest = `${apiProductsURL}${selectedProduct.id}/`;
                 $.ajax(urlForRequest, {
                     "method": "PATCH",
+                    "dataType": "json",
                     "data": {
                         "title": $("#product-title").val(),
                         "description": $("#product-description").val(),
@@ -290,7 +302,7 @@
             });
         }
 
-        function productCreate(event) {
+        function productCreate() {
             showModal($productEditor);
 
             $("#product-number").text("-");
@@ -308,8 +320,28 @@
                     alert(error.message)
                     return;
                 }
-                alert("Функциональность пока не реализована");
+
+                $.ajax(apiProductsURL, {
+                    "method": "POST",
+                    "dataType": "json",
+                    "data": {
+                        "title": $("#product-title").val(),
+                        "description": $("#product-description").val(),
+                        "price": $("#product-price").val()
+                    },
+                    "success": function (data) {
+                        closeModal($productEditor);
+                        $("#product-search-field").val(data.id)
+                        showProducts(`${apiProductsURL}${data.id}`);
+                    }
+                })
             })
+        }
+
+        function productSearch() {
+            let searchString = $("#product-search-field").val();
+            let urlForSearch = `${apiProductsURL}?search=${searchString}`;
+            showProducts(urlForSearch);
         }
     </script>
 {% endblock %}

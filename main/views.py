@@ -90,5 +90,5 @@ class ProductViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     filter_backends = [SearchFilter]
-    search_fields = ['title']
+    search_fields = ['id', 'title', 'description']
     queryset = Product.objects.all()
