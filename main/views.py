@@ -91,4 +91,10 @@ class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [SearchFilter]
     search_fields = ['id', 'title', 'description']
-    queryset = Product.objects.all()
+
+    def get_queryset(self):
+        queryset = Product.objects.all()
+        order = self.request.query_params.get('order')
+        if order:
+            queryset = queryset.order_by(order)
+        return queryset
