@@ -271,7 +271,7 @@
                     orderColumn.column.text(orderColumn.column.attr("display-name"));
                     orderColumn = {
                         column: $this,
-                        order: "+"
+                        order: orderColumn.order
                     };
                 }
             } else {
@@ -282,8 +282,12 @@
             }
 
             orderColumn.column.text(orderColumn.column.attr("display-name") + "(" + orderColumn.order + ")");
-            let urlForRequest = apiProductsURL + "?" + $("#product-search-field").val();
-            urlForRequest += "&order=" + (orderColumn.order == "+" ? "" : "-") + $this.attr("column-key");
+            let urlForRequest = apiProductsURL + "?";
+            urlForRequest += "order=" + (orderColumn.order === "+" ? "" : "-") + $this.attr("column-key");
+
+            let searchText = $("#product-search-field").val();
+            urlForRequest += searchText ? "&search=" + searchText : "";
+
             showProducts(urlForRequest);
         }
 
