@@ -37,8 +37,13 @@ def index(request):
     return render(request, 'main/index.html', context={})
 
 
+@login_required(login_url='login')
+def products(request):
+    return render(request, 'main/products.html', context={})
+
+
 def products_to_xls(request):
-    products = Product.objects.all()
+    products_list = Product.objects.all()
     work_book = Workbook()
     work_sheet = work_book.active
     work_sheet.title = 'Products'
@@ -51,7 +56,7 @@ def products_to_xls(request):
 
     # Копируем данные из БД
     row = 2
-    for product in products:
+    for product in products_list:
         work_sheet.cell(row=row, column=1, value=product.pk)
         work_sheet.cell(row=row, column=2, value=product.title)
         work_sheet.cell(row=row, column=3, value=product.description)
