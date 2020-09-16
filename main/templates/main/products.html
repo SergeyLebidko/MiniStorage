@@ -67,6 +67,9 @@
         $("#create-product-button").click(productCreate);
         $("#search-product-button").click(productSearch);
         $("#product-editor-close-button, #product-editor-cancel-button").click(() => closeModal($("#product-editor")));
+        $("#content-table th").click(productSort);
+
+        let orderColumn = null;
 
         function showModal($modal) {
             document.body.style.overflow = "hidden";
@@ -174,10 +177,8 @@
             $("#product-title").val(selectedProduct.title);
             $("#product-description").text(selectedProduct.description);
             $("#product-price").val(selectedProduct.price);
+            $("#product-to-remove").prop("disabled", false);
             $("#product-to-remove").prop("checked", selectedProduct.to_remove);
-
-            console.log(selectedProduct.to_remove);
-            console.log($("#product-to-remove").prop("checked"));
 
             $("#product-editor-save-button").off().click(() => {
                 //Проверяем корректность внесения данных в форму
@@ -227,6 +228,7 @@
             $("#product-description").text("");
             $("#product-price").val("0");
             $("#product-to-remove").prop("disabled", true);
+            $("#product-to-remove").prop("checked", false);
 
             $("#product-editor-save-button").off().click(() => {
                 try {
@@ -257,6 +259,32 @@
             let searchString = $("#product-search-field").val();
             let urlForSearch = `${apiProductsURL}?search=${searchString}`;
             showProducts(urlForSearch);
+        }
+
+        function productSort() {
+            let $this = $(this);
+
+            if (orderColumn) {
+                if (orderColumn.column.attr("column-key") === $this.attr("column-key")) {
+                    orderColumn.order = {"+": "-", "-": "+"}[orderColumn.order]
+                } else {
+                    orderColumn.column.text(orderColumn.column.attr("display-name"));
+                    orderColumn = {
+                        column: $this,
+                        order: "+"
+                    };
+                }
+            } else {
+                orderColumn = {
+                    column: $this,
+                    order: "+"
+                };
+            }
+
+            orderColumn.column.text(orderColumn.column.attr("display-name") + "(" + orderColumn.order + ")");
+            let urlForRequest = apiProductsURL + "?" + $("#product-search-field").val();
+            urlForRequest += "&order=" + (orderColumn.order == "+" ? "" : "-") + $this.attr("column-key");
+            showProducts(urlForRequest);
         }
 
         showProducts(apiProductsURL);
