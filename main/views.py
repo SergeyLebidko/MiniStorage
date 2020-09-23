@@ -42,6 +42,11 @@ def products(request):
     return render(request, 'main/products.html', context={})
 
 
+@login_required(login_url='login')
+def contractors(request):
+    return render(request, 'main/contractors.html', context={})
+
+
 def products_to_xls(request):
     products_list = Product.objects.all()
     work_book = Workbook()

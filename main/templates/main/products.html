@@ -3,9 +3,9 @@
 {% block content %}
     <div class="basic-div content-div" id="content-div">
         <div class="operation-div">
-            <span class="span-button" id="create-product-button">Создать</span>
-            <input type="text" name="product-search-field" id="product-search-field" value="">
-            <span class="span-button" id="search-product-button">Найти</span>
+            <span class="span-button" id="create-button">Создать</span>
+            <input type="text" name="search-field" id="search-field" value="">
+            <span class="span-button" id="search-button">Найти</span>
             <span class="span-button" id="clear-search-field-button">Очистить</span>
         </div>
         <table id="content-table" class="content-table">
@@ -61,11 +61,11 @@
         $.ajaxSetup({"headers": {"Authorization": userToken}});
 
         $("#clear-search-field-button").click(() => {
-            $("#product-search-field").val("");
-            showProducts(apiProductsURL)
+            $("#search-field").val("");
+            productSearch();
         });
-        $("#create-product-button").click(productCreate);
-        $("#search-product-button").click(productSearch);
+        $("#create-button").click(productCreate);
+        $("#search-button").click(productSearch);
         $("#product-editor-close-button, #product-editor-cancel-button").click(() => closeModal($("#product-editor")));
         $("#content-table th").click(productSort);
 
@@ -248,7 +248,7 @@
                     },
                     "success": function (data) {
                         closeModal($("#product-editor"));
-                        $("#product-search-field").val(data.id)
+                        $("#search-field").val(data.id)
                         showProducts(`${apiProductsURL}${data.id}`);
                     }
                 })
@@ -256,8 +256,20 @@
         }
 
         function productSearch() {
-            let searchString = $("#product-search-field").val();
-            let urlForSearch = `${apiProductsURL}?search=${searchString}`;
+            //Формируем url для поискового запроса
+            let urlForSearch;
+            let searchString = $("#search-field").val();
+            if (searchString) {
+                urlForSearch = `${apiProductsURL}?search=${searchString}`;
+            } else {
+                urlForSearch = apiProductsURL;
+            }
+
+            //Удаляем старые параметры сортировки
+            if (orderColumn) {
+                orderColumn.column.text(orderColumn.column.attr("display-name"));
+                orderColumn = null;
+            }
             showProducts(urlForSearch);
         }
 
@@ -285,7 +297,7 @@
             let urlForRequest = apiProductsURL + "?";
             urlForRequest += "order=" + (orderColumn.order === "+" ? "" : "-") + $this.attr("column-key");
 
-            let searchText = $("#product-search-field").val();
+            let searchText = $("#search-field").val();
             urlForRequest += searchText ? "&search=" + searchText : "";
 
             showProducts(urlForRequest);
