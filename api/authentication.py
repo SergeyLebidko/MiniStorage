@@ -1,5 +1,5 @@
 from rest_framework import authentication
-from .models import Token
+from main.models import Token
 
 
 class TokenAuthentication(authentication.BaseAuthentication):

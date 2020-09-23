@@ -4,18 +4,12 @@ from django.shortcuts import render
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.decorators import login_required
 from django.http.response import FileResponse
-from rest_framework.filters import SearchFilter
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
 from openpyxl.utils import get_column_letter
 from io import BytesIO
-from .serializers import ProductSerializer
-from .authentication import TokenAuthentication
-from .pagination import CustomPagination
-from .models import Product, Token
-from .utils import get_tmp_file_path, check_tmp_folder
+from .models import Product, Contractor, Token
+from utils import get_tmp_file_path, check_tmp_folder
 
 
 class Login(LoginView):
@@ -89,22 +83,3 @@ def products_to_xls(request):
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         filename='products.xlsx'
     )
-
-
-# Методы API
-
-
-class ProductViewSet(viewsets.ModelViewSet):
-    serializer_class = ProductSerializer
-    pagination_class = CustomPagination
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-    filter_backends = [SearchFilter]
-    search_fields = ['id', 'title', 'description']
-
-    def get_queryset(self):
-        queryset = Product.objects.all()
-        order = self.request.query_params.get('order')
-        if order:
-            queryset = queryset.order_by(order)
-        return queryset

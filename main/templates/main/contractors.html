@@ -26,6 +26,30 @@
 {% endblock %}
 
 {% block modals %}
+    <div class="modal" id="contractor-editor" style="display: none">
+    <div>
+        <div>
+            <span class="span-button" id="contractor-editor-close-button">X</span>
+        </div>
+        <div>
+            Номер: <span id="contractor-number"></span><br><br>
+            Дата создания: <span id="contractor-dt-created"></span><br><br>
+            Дата изменения <span id="contractor-dt-updated"></span><br><br>
+            <fieldset>
+                Наименование:<br><input type="text" name="contractor-title" id="contractor-title" value="" required><br><br>
+                Категория:
+                <select name="contractor-category" id="contractor-category">
+                    <option value="">--выберите категорию--</option>
+                </select><br><br>
+                Пометить на удаление: <input type="checkbox" name="contractor-to-remove" id="contractor-to-remove">
+            </fieldset>
+        </div>
+        <br>
+        <div>
+            <span class="span-button" id="contractor-editor-cancel-button">Отмена</span>
+            <span class="span-button" id="contractor-editor-save-button">Сохранить</span>
+        </div>
+    </div>
 {% endblock %}
 
 {% block scripts %}
