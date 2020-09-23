@@ -38,9 +38,12 @@ class Product(BaseDataModel):
 
 
 class Contractor(BaseDataModel):
+    INDIVIDUAL = 'individual'
+    ENTITY = 'entity'
+
     CONTRACTOR_CATEGORY = (
-        ('individual', 'Физическое лицо'),
-        ('entity', 'Юридическое лицо')
+        (INDIVIDUAL, 'Физическое лицо'),
+        (ENTITY, 'Юридическое лицо')
     )
 
     title = models.CharField(max_length=200, verbose_name='Наименование')

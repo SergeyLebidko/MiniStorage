@@ -1,6 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from main.models import Product, Contractor
 from .serializers import ProductSerializer, ContractorSerializer
@@ -39,3 +41,10 @@ class ContractorViewSet(viewsets.ModelViewSet):
             queryset = queryset.order_by(order)
         return queryset
 
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def contractor_categories(request):
+    data = {machine_name: human_name for machine_name, human_name in Contractor.CONTRACTOR_CATEGORY}
+    return Response(data)

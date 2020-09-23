@@ -16,5 +16,5 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Contractor)
 class ContractorAdmin(admin.ModelAdmin):
-    list_display = ['id', 'title', 'dt_created', 'dt_updated', 'to_remove']
+    list_display = ['id', 'title', 'category', 'dt_created', 'dt_updated', 'to_remove']
     list_display_links = ['title']

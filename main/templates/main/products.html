@@ -137,7 +137,7 @@
                         $tableRow.data("product", product);
                         $contentTable.append($tableRow);
                     }
-                    $contentTable.on("click", "tr", productEdit);
+                    $contentTable.on("click", "tr:not(:first-child)", productEdit);
 
                     let $prevPageButton = $("#prev-page-button");
                     if (prevPage) {
@@ -166,7 +166,6 @@
 
         function productEdit() {
             let selectedProduct = $.data(this, "product");
-            if (!selectedProduct) return;
 
             let $row = $(this);
 

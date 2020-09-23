@@ -3,9 +3,9 @@
 {% block content %}
     <div class="basic-div content-div" id="content-div">
         <div class="operation-div">
-            <span class="span-button" id="create-product-button">Создать</span>
-            <input type="text" name="product-search-field" id="product-search-field" value="">
-            <span class="span-button" id="search-product-button">Найти</span>
+            <span class="span-button" id="create-button">Создать</span>
+            <input type="text" name="search-field" id="search-field" value="">
+            <span class="span-button" id="search-button">Найти</span>
             <span class="span-button" id="clear-search-field-button">Очистить</span>
         </div>
         <table id="content-table" class="content-table">
@@ -27,30 +27,199 @@
 
 {% block modals %}
     <div class="modal" id="contractor-editor" style="display: none">
-    <div>
         <div>
-            <span class="span-button" id="contractor-editor-close-button">X</span>
-        </div>
-        <div>
-            Номер: <span id="contractor-number"></span><br><br>
-            Дата создания: <span id="contractor-dt-created"></span><br><br>
-            Дата изменения <span id="contractor-dt-updated"></span><br><br>
-            <fieldset>
-                Наименование:<br><input type="text" name="contractor-title" id="contractor-title" value="" required><br><br>
-                Категория:
-                <select name="contractor-category" id="contractor-category">
-                    <option value="">--выберите категорию--</option>
-                </select><br><br>
-                Пометить на удаление: <input type="checkbox" name="contractor-to-remove" id="contractor-to-remove">
-            </fieldset>
-        </div>
-        <br>
-        <div>
-            <span class="span-button" id="contractor-editor-cancel-button">Отмена</span>
-            <span class="span-button" id="contractor-editor-save-button">Сохранить</span>
+            <div>
+                <span class="span-button" id="contractor-editor-close-button">X</span>
+            </div>
+            <div>
+                Номер: <span id="contractor-number"></span><br><br>
+                Дата создания: <span id="contractor-dt-created"></span><br><br>
+                Дата изменения <span id="contractor-dt-updated"></span><br><br>
+                <fieldset>
+                    Наименование:<br><input type="text" name="contractor-title" id="contractor-title" value="" required><br><br>
+                    Категория:
+                    <select name="contractor-category" id="contractor-category"></select><br><br>
+                    Пометить на удаление: <input type="checkbox" name="contractor-to-remove" id="contractor-to-remove">
+                </fieldset>
+            </div>
+            <br>
+            <div>
+                <span class="span-button" id="contractor-editor-cancel-button">Отмена</span>
+                <span class="span-button" id="contractor-editor-save-button">Сохранить</span>
+            </div>
         </div>
     </div>
 {% endblock %}
 
 {% block scripts %}
+    <script>
+        const apiContractorsURL = "/api/contractors/";
+        const apiContractorCategories = "/api/contractor_categories/";
+
+        const userToken = localStorage.getItem("user_token");
+        $.ajaxSetup({"headers": {"Authorization": userToken}});
+
+        // Блок операторов с объявлением обработчиков событий
+        $("#contractor-editor-close-button, #contractor-editor-cancel-button").click(() => closeModal($("#contractor-editor")));
+
+        let contractorCategories;
+        let orderColumn = null;
+
+        function showModal($modal) {
+            document.body.style.overflow = "hidden";
+            $modal.show();
+        }
+
+        function closeModal($modal) {
+            document.body.style.overflow = "auto";
+            $modal.hide();
+        }
+
+        function formatDates(obj) {
+            //Приводим даты к более читаемому виду
+            let dateExp = /(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d:\d\d)/;
+            if ("dt_created" in obj) {
+                let [_, year, month, day, time] = dateExp.exec(obj.dt_created);
+                obj.dt_created = `${day}.${month}.${year} ${time}`;
+            }
+            if ("dt_updated" in obj) {
+                let [_, year, month, day, time] = dateExp.exec(obj.dt_updated);
+                obj.dt_updated = `${day}.${month}.${year} ${time}`;
+            }
+            return obj;
+        }
+
+        function checkContractorFormData() {
+            if ($("#contractor-title").val().trim() === "") {
+                throw new Error("Наименование не может быть пустым!")
+            }
+        }
+
+        function showContractors(url) {
+            if (!contractorCategories) {
+                $.ajax(apiContractorCategories, {
+                    "method": "GET",
+                    "dataType": "json",
+                    "async": false,
+                    "success": function (data) {
+                        contractorCategories = data;
+                    }
+                })
+            }
+            $.ajax(url, {
+                "method": "GET",
+                "dataType": "json",
+                "success": function (data) {
+                    let contractors, nextPage, prevPage;
+                    if ("results" in data) {
+                        contractors = data.results;
+                        nextPage = data.next;
+                        prevPage = data.previous;
+                    } else {
+                        contractors = [data];
+                        nextPage = prevPage = null;
+                    }
+
+                    //Создаем таблицу со списком контрагентов
+                    let $contentTable = $("#content-table");
+                    $("tr:not(:first-child)", $contentTable).remove()
+                    let $tableRow = null;
+                    for (let contractor of contractors) {
+                        formatDates(contractor);
+                        $tableRow = $("<tr>");
+                        $tableRow.append($("<td>").text(contractor.id));
+                        $tableRow.append($("<td>").text(contractor.title));
+                        $tableRow.append($("<td>").text(contractorCategories[contractor.category]));
+                        $tableRow.append($("<td>").text(contractor.dt_created));
+                        $tableRow.append($("<td>").text(contractor.dt_updated));
+                        $tableRow.append($("<td>").text(contractor.to_remove ? "X" : "-"));
+                        $tableRow.data("contractor", contractor);
+                        $contentTable.append($tableRow);
+                    }
+                    $contentTable.on("click", "tr:not(:first-child)", contractorEdit);
+
+                    let $prevPageButton = $("#prev-page-button");
+                    if (prevPage) {
+                        $prevPageButton.show();
+                        $prevPageButton.off();
+                        $prevPageButton.click(() => {
+                            showContractors(prevPage);
+                        })
+                    } else {
+                        $prevPageButton.hide();
+                    }
+
+                    let $nextPageButton = $("#next-page-button");
+                    if (nextPage) {
+                        $nextPageButton.show();
+                        $nextPageButton.off();
+                        $nextPageButton.click(() => {
+                            showContractors(nextPage);
+                        })
+                    } else {
+                        $nextPageButton.hide();
+                    }
+                }
+            })
+
+            function contractorEdit() {
+                let selectedContractor = $.data(this, "contractor");
+
+                let $row = $(this);
+
+                showModal($("#contractor-editor"));
+                $("#contractor-number").text(selectedContractor.id);
+                $("#contractor-dt-created").text(selectedContractor.dt_created);
+                $("#contractor-dt-updated").text(selectedContractor.dt_updated);
+                $("#contractor-title").val(selectedContractor.title);
+                let categoriesList = [];
+                for (let [key, value] of Object.entries(contractorCategories)) {
+                    categoriesList.push($("<option>").val(key).text(value));
+                    if (key === selectedContractor.category) {
+                        categoriesList[categoriesList.length - 1].prop("selected", true);
+                    }
+                }
+                $("#contractor-category").empty().append(...categoriesList);
+                $("#contractor-to-remove").prop("disabled", false);
+                $("#contractor-to-remove").prop("checked", selectedContractor.to_remove);
+
+                $("#contractor-editor-save-button").off().click(() => {
+                    //Проверяем корректность внесения данных в форму
+                    try {
+                        checkContractorFormData();
+                    } catch (error) {
+                        alert(error.message);
+                        return;
+                    }
+
+                    let urlForRequest = `${apiContractorsURL}${selectedContractor.id}/`;
+                    $.ajax(urlForRequest, {
+                        "method": "PATCH",
+                        "dataType": "json",
+                        "data": {
+                            "title": $("#contractor-title").val(),
+                            "category": $("#contractor-category").val(),
+                            "to_remove": $("#contractor-to-remove:checked").val() ? true : false
+                        },
+                        "success": function (data) {
+                            formatDates(data);
+
+                            $row.empty();
+                            $row.append($("<td>").text(data.id));
+                            $row.append($("<td>").text(data.title));
+                            $row.append($("<td>").text(contractorCategories[data.category]));
+                            $row.append($("<td>").text(data.dt_created));
+                            $row.append($("<td>").text(data.dt_updated));
+                            $row.append($("<td>").text(data.to_remove ? "X" : "-"));
+                            $row.data("contractor", data);
+
+                            closeModal($("#contractor-editor"));
+                        }
+                    })
+                })
+            }
+        }
+
+        showContractors(apiContractorsURL);
+    </script>
 {% endblock %}
