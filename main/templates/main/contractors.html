@@ -60,9 +60,16 @@
         $.ajaxSetup({"headers": {"Authorization": userToken}});
 
         // Блок операторов с объявлением обработчиков событий
+        $("#clear-search-field-button").click(() => {
+            $("#search-field").val("");
+            contractorSearch();
+        });
+        $("#create-button").click(contractorCreate);
+        $("#search-button").click(contractorSearch);
         $("#contractor-editor-close-button, #contractor-editor-cancel-button").click(() => closeModal($("#contractor-editor")));
+        $("#content-table th").click(contractorSort);
 
-        let contractorCategories;
+        let contractorCategories = null;
         let orderColumn = null;
 
         function showModal($modal) {
@@ -161,63 +168,150 @@
                     }
                 }
             })
+        }
 
-            function contractorEdit() {
-                let selectedContractor = $.data(this, "contractor");
+        function contractorEdit() {
+            let selectedContractor = $.data(this, "contractor");
 
-                let $row = $(this);
+            let $row = $(this);
 
-                showModal($("#contractor-editor"));
-                $("#contractor-number").text(selectedContractor.id);
-                $("#contractor-dt-created").text(selectedContractor.dt_created);
-                $("#contractor-dt-updated").text(selectedContractor.dt_updated);
-                $("#contractor-title").val(selectedContractor.title);
-                let categoriesList = [];
-                for (let [key, value] of Object.entries(contractorCategories)) {
-                    categoriesList.push($("<option>").val(key).text(value));
-                    if (key === selectedContractor.category) {
-                        categoriesList[categoriesList.length - 1].prop("selected", true);
-                    }
+            showModal($("#contractor-editor"));
+            $("#contractor-number").text(selectedContractor.id);
+            $("#contractor-dt-created").text(selectedContractor.dt_created);
+            $("#contractor-dt-updated").text(selectedContractor.dt_updated);
+            $("#contractor-title").val(selectedContractor.title);
+            let categoriesList = [];
+            for (let [key, value] of Object.entries(contractorCategories)) {
+                categoriesList.push($("<option>").val(key).text(value));
+                if (key === selectedContractor.category) {
+                    categoriesList[categoriesList.length - 1].prop("selected", true);
                 }
-                $("#contractor-category").empty().append(...categoriesList);
-                $("#contractor-to-remove").prop("disabled", false);
-                $("#contractor-to-remove").prop("checked", selectedContractor.to_remove);
-
-                $("#contractor-editor-save-button").off().click(() => {
-                    //Проверяем корректность внесения данных в форму
-                    try {
-                        checkContractorFormData();
-                    } catch (error) {
-                        alert(error.message);
-                        return;
-                    }
-
-                    let urlForRequest = `${apiContractorsURL}${selectedContractor.id}/`;
-                    $.ajax(urlForRequest, {
-                        "method": "PATCH",
-                        "dataType": "json",
-                        "data": {
-                            "title": $("#contractor-title").val(),
-                            "category": $("#contractor-category").val(),
-                            "to_remove": $("#contractor-to-remove:checked").val() ? true : false
-                        },
-                        "success": function (data) {
-                            formatDates(data);
-
-                            $row.empty();
-                            $row.append($("<td>").text(data.id));
-                            $row.append($("<td>").text(data.title));
-                            $row.append($("<td>").text(contractorCategories[data.category]));
-                            $row.append($("<td>").text(data.dt_created));
-                            $row.append($("<td>").text(data.dt_updated));
-                            $row.append($("<td>").text(data.to_remove ? "X" : "-"));
-                            $row.data("contractor", data);
-
-                            closeModal($("#contractor-editor"));
-                        }
-                    })
-                })
             }
+            $("#contractor-category").empty().append(...categoriesList);
+            $("#contractor-to-remove").prop("disabled", false);
+            $("#contractor-to-remove").prop("checked", selectedContractor.to_remove);
+
+            $("#contractor-editor-save-button").off().click(() => {
+                //Проверяем корректность внесения данных в форму
+                try {
+                    checkContractorFormData();
+                } catch (error) {
+                    alert(error.message);
+                    return;
+                }
+
+                let urlForRequest = `${apiContractorsURL}${selectedContractor.id}/`;
+                $.ajax(urlForRequest, {
+                    "method": "PATCH",
+                    "dataType": "json",
+                    "data": {
+                        "title": $("#contractor-title").val(),
+                        "category": $("#contractor-category").val(),
+                        "to_remove": $("#contractor-to-remove:checked").val() ? true : false
+                    },
+                    "success": function (data) {
+                        formatDates(data);
+
+                        $row.empty();
+                        $row.append($("<td>").text(data.id));
+                        $row.append($("<td>").text(data.title));
+                        $row.append($("<td>").text(contractorCategories[data.category]));
+                        $row.append($("<td>").text(data.dt_created));
+                        $row.append($("<td>").text(data.dt_updated));
+                        $row.append($("<td>").text(data.to_remove ? "X" : "-"));
+                        $row.data("contractor", data);
+
+                        closeModal($("#contractor-editor"));
+                    }
+                })
+            })
+        }
+
+        function contractorCreate() {
+            showModal($("#contractor-editor"));
+
+            $("#contractor-number").text("-");
+            $("#contractor-dt-created").text("-");
+            $("#contractor-dt-updated").text("-");
+            $("#contractor-title").val("");
+            let categoriesList = [];
+            for (let [key, value] of Object.entries(contractorCategories)) {
+                categoriesList.push($("<option>").val(key).text(value));
+            }
+            categoriesList[0].prop("selected", true);
+            $("#contractor-category").empty().append(...categoriesList);
+            $("#contractor-to-remove").prop("disabled", true);
+            $("#contractor-to-remove").prop("checked", false);
+
+            $("#contractor-editor-save-button").off().click(() => {
+                try {
+                    checkContractorFormData();
+                } catch (error) {
+                    alert(error.message);
+                    return
+                }
+
+                $.ajax(apiContractorsURL, {
+                    "method": "POST",
+                    "dataType": "json",
+                    "data": {
+                        "title": $("#contractor-title").val(),
+                        "category": $("#contractor-category").val()
+                    },
+                    "success": function (data) {
+                        closeModal($("#contractor-editor"));
+                        $("#search-field").val(data.id);
+                        showContractors(`${apiContractorsURL}${data.id}`);
+                    }
+                })
+            })
+        }
+
+        function contractorSearch() {
+            let urlForSearch;
+            let searchString = $("#search-field").val();
+            if (searchString) {
+                urlForSearch = `${apiContractorsURL}?search=${searchString}`;
+            } else {
+                urlForSearch = apiContractorsURL;
+            }
+
+            //Удаляем старые параметры сортировки
+            if (orderColumn) {
+                orderColumn.column.text(orderColumn.column.attr("display-name"));
+                orderColumn = null;
+            }
+            showContractors(urlForSearch);
+        }
+
+        function contractorSort() {
+            let $this = $(this);
+
+            if (orderColumn) {
+                if (orderColumn.column.attr("column-key") === $this.attr("column-key")) {
+                    orderColumn.order = {"+": "-", "-": "+"}[orderColumn.order]
+                } else {
+                    orderColumn.column.text(orderColumn.column.attr("display-name"));
+                    orderColumn = {
+                        column: $this,
+                        order: orderColumn.order
+                    };
+                }
+            } else {
+                orderColumn = {
+                    column: $this,
+                    order: "+"
+                };
+            }
+
+            orderColumn.column.text(orderColumn.column.attr("display-name") + "(" + orderColumn.order + ")");
+            let urlForRequest = apiContractorsURL + "?";
+            urlForRequest += "order=" + (orderColumn.order === "+" ? "" : "-") + $this.attr("column-key");
+
+            let searchText = $("#search-field").val();
+            urlForRequest += searchText ? "&search=" + searchText : "";
+
+            showContractors(urlForRequest);
         }
 
         showContractors(apiContractorsURL);

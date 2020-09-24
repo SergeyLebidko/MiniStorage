@@ -247,7 +247,7 @@
                     },
                     "success": function (data) {
                         closeModal($("#product-editor"));
-                        $("#search-field").val(data.id)
+                        $("#search-field").val(data.id);
                         showProducts(`${apiProductsURL}${data.id}`);
                     }
                 })
