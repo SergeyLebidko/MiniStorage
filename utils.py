@@ -1,5 +1,9 @@
 import os
+from io import BytesIO
 from django.conf import settings
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment
+from openpyxl.utils import get_column_letter
 
 
 def get_tmp_folder_path():
@@ -16,3 +20,41 @@ def check_tmp_folder():
         os.mkdir(tmp_folder)
     except OSError:
         pass
+
+
+def model_to_xls(model, column_descriptions):
+    data = model.objects.all()
+    work_book = Workbook()
+    work_sheet = work_book.active
+    work_sheet.title = 'data'
+
+    # Создаем шапку таблицы
+    for column, description in enumerate(column_descriptions, 1):
+        cell = work_sheet.cell(row=1, column=column, value=description['display_name'])
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(horizontal='center')
+        width = description.get('width')
+        if width:
+            work_sheet.column_dimensions[get_column_letter(column)].width = width
+
+    # Копируем данные из БД
+    row = 2
+    for data_element in data:
+        for column, description in enumerate(column_descriptions, 1):
+            value = getattr(data_element, description['machine_name'])
+            subs = description.get('subs')
+            if subs:
+                value = subs[value]
+            work_sheet.cell(row=row, column=column, value=value)
+        row += 1
+
+    # Сохраняем данные во временный файл, затем отдаем содержимое файла клиенту. Сам файл удаляем
+    check_tmp_folder()
+    tmp_file_path = get_tmp_file_path('products.xlsx')
+    work_book.save(tmp_file_path)
+
+    with open(tmp_file_path, 'rb') as file:
+        bio = BytesIO(file.read())
+    os.remove(tmp_file_path)
+
+    return bio

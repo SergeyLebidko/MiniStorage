@@ -9,7 +9,7 @@ from openpyxl.styles import Font, Alignment
 from openpyxl.utils import get_column_letter
 from io import BytesIO
 from .models import Product, Contractor, Token
-from utils import get_tmp_file_path, check_tmp_folder
+from utils import get_tmp_file_path, check_tmp_folder, model_to_xls
 
 
 class Login(LoginView):
@@ -42,44 +42,36 @@ def contractors(request):
 
 
 def products_to_xls(request):
-    products_list = Product.objects.all()
-    work_book = Workbook()
-    work_sheet = work_book.active
-    work_sheet.title = 'Products'
-
-    # Создаем шапку таблицы
-    for column, content in enumerate(['Номер', 'Наименование', 'Описание', 'Дата создания', 'Дата изменения'], 1):
-        cell = work_sheet.cell(row=1, column=column, value=content)
-        cell.font = Font(bold=True)
-        cell.alignment = Alignment(horizontal='center')
-
-    # Копируем данные из БД
-    row = 2
-    for product in products_list:
-        work_sheet.cell(row=row, column=1, value=product.pk)
-        work_sheet.cell(row=row, column=2, value=product.title)
-        work_sheet.cell(row=row, column=3, value=product.description)
-        work_sheet.cell(row=row, column=4, value=product.dt_created)
-        work_sheet.cell(row=row, column=5, value=product.dt_updated)
-        row += 1
-
-    # Выставляем ширину столбцов
-    work_sheet.column_dimensions[get_column_letter(2)].width = 80
-    work_sheet.column_dimensions[get_column_letter(3)].width = 30
-    work_sheet.column_dimensions[get_column_letter(4)].width = 25
-    work_sheet.column_dimensions[get_column_letter(5)].width = 25
-
-    # Сохраняем данные во временный файл, затем отдаем содержимое файла клиенту. Сам файл удаляем
-    check_tmp_folder()
-    tmp_file_path = get_tmp_file_path('products.xlsx')
-    work_book.save(tmp_file_path)
-
-    with open(tmp_file_path, 'rb') as file:
-        bio = BytesIO(file.read())
-    os.remove(tmp_file_path)
+    column_descriptions = [
+        {'machine_name': 'id', 'display_name': 'Номер'},
+        {'machine_name': 'title', 'display_name': 'Наименование', 'width': 80},
+        {'machine_name': 'description', 'display_name': 'Описание', 'width': 30},
+        {'machine_name': 'price', 'display_name': 'Цена'},
+        {'machine_name': 'dt_created', 'display_name': 'Дата создания', 'width': 30},
+        {'machine_name': 'dt_updated', 'display_name': 'Дата изменения', 'width': 30},
+    ]
+    xls_data = model_to_xls(Product, column_descriptions)
 
     return FileResponse(
-        bio,
+        xls_data,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        filename='products.xlsx'
+    )
+
+
+def contractors_to_xls(request):
+    column_descriptions = [
+        {'machine_name': 'id', 'display_name': 'Номер'},
+        {'machine_name': 'title', 'display_name': 'Наименование', 'width': 80},
+        {'machine_name': 'category', 'display_name': 'Категория', 'width': 30,
+         'subs': dict(Contractor.CONTRACTOR_CATEGORY)},
+        {'machine_name': 'dt_created', 'display_name': 'Дата создания', 'width': 30},
+        {'machine_name': 'dt_updated', 'display_name': 'Дата изменения', 'width': 30},
+    ]
+    xls_data = model_to_xls(Contractor, column_descriptions)
+
+    return FileResponse(
+        xls_data,
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         filename='products.xlsx'
     )
