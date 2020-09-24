@@ -1,4 +1,5 @@
 {% extends 'main/index.html' %}
+{% load static %}
 
 {% block content %}
     <div class="basic-div content-div" id="content-div">
@@ -54,46 +55,9 @@
 {% endblock %}
 
 {% block scripts %}
+    <script src="{% static 'main/common_for_catalogs.js' %}"></script>
     <script>
-        const apiProductsURL = "/api/products/";
-
-        const userToken = localStorage.getItem("user_token");
-        $.ajaxSetup({"headers": {"Authorization": userToken}});
-
-        $("#clear-search-field-button").click(() => {
-            $("#search-field").val("");
-            productSearch();
-        });
-        $("#create-button").click(productCreate);
-        $("#search-button").click(productSearch);
-        $("#product-editor-close-button, #product-editor-cancel-button").click(() => closeModal($("#product-editor")));
-        $("#content-table th").click(productSort);
-
-        let orderColumn = null;
-
-        function showModal($modal) {
-            document.body.style.overflow = "hidden";
-            $modal.show();
-        }
-
-        function closeModal($modal) {
-            document.body.style.overflow = "auto";
-            $modal.hide();
-        }
-
-        function formatDates(obj) {
-            //Приводим даты к более читаемому виду
-            let dateExp = /(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d:\d\d)/;
-            if ("dt_created" in obj) {
-                let [_, year, month, day, time] = dateExp.exec(obj.dt_created);
-                obj.dt_created = `${day}.${month}.${year} ${time}`;
-            }
-            if ("dt_updated" in obj) {
-                let [_, year, month, day, time] = dateExp.exec(obj.dt_updated);
-                obj.dt_updated = `${day}.${month}.${year} ${time}`;
-            }
-            return obj;
-        }
+        const apiURL = "/api/products/";
 
         function checkProductFormData() {
             //Проверяем корректность внесения данных
@@ -188,7 +152,7 @@
                     return;
                 }
 
-                let urlForRequest = `${apiProductsURL}${selectedProduct.id}/`;
+                let urlForRequest = `${apiURL}${selectedProduct.id}/`;
                 $.ajax(urlForRequest, {
                     "method": "PATCH",
                     "dataType": "json",
@@ -237,7 +201,7 @@
                     return;
                 }
 
-                $.ajax(apiProductsURL, {
+                $.ajax(apiURL, {
                     "method": "POST",
                     "dataType": "json",
                     "data": {
@@ -248,60 +212,25 @@
                     "success": function (data) {
                         closeModal($("#product-editor"));
                         $("#search-field").val(data.id);
-                        showProducts(`${apiProductsURL}${data.id}`);
+                        showProducts(`${apiURL}${data.id}`);
                     }
                 })
             })
         }
 
-        function productSearch() {
-            //Формируем url для поискового запроса
-            let urlForSearch;
-            let searchString = $("#search-field").val();
-            if (searchString) {
-                urlForSearch = `${apiProductsURL}?search=${searchString}`;
-            } else {
-                urlForSearch = apiProductsURL;
-            }
+        let productSearch = getSearchFunction(showProducts);
 
-            //Удаляем старые параметры сортировки
-            if (orderColumn) {
-                orderColumn.column.text(orderColumn.column.attr("display-name"));
-                orderColumn = null;
-            }
-            showProducts(urlForSearch);
-        }
+        let productSort = getSortFunction(showProducts);
 
-        function productSort() {
-            let $this = $(this);
+        $("#clear-search-field-button").click(() => {
+            $("#search-field").val("");
+            productSearch();
+        });
+        $("#create-button").click(productCreate);
+        $("#search-button").click(productSearch);
+        $("#product-editor-close-button, #product-editor-cancel-button").click(() => closeModal($("#product-editor")));
+        $("#content-table th").click(productSort);
 
-            if (orderColumn) {
-                if (orderColumn.column.attr("column-key") === $this.attr("column-key")) {
-                    orderColumn.order = {"+": "-", "-": "+"}[orderColumn.order]
-                } else {
-                    orderColumn.column.text(orderColumn.column.attr("display-name"));
-                    orderColumn = {
-                        column: $this,
-                        order: orderColumn.order
-                    };
-                }
-            } else {
-                orderColumn = {
-                    column: $this,
-                    order: "+"
-                };
-            }
-
-            orderColumn.column.text(orderColumn.column.attr("display-name") + "(" + orderColumn.order + ")");
-            let urlForRequest = apiProductsURL + "?";
-            urlForRequest += "order=" + (orderColumn.order === "+" ? "" : "-") + $this.attr("column-key");
-
-            let searchText = $("#search-field").val();
-            urlForRequest += searchText ? "&search=" + searchText : "";
-
-            showProducts(urlForRequest);
-        }
-
-        showProducts(apiProductsURL);
+        showProducts(apiURL);
     </script>
 {% endblock %}

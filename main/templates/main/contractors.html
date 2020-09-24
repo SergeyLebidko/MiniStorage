@@ -1,4 +1,5 @@
 {% extends 'main/index.html' %}
+{% load static %}
 
 {% block content %}
     <div class="basic-div content-div" id="content-div">
@@ -52,49 +53,12 @@
 {% endblock %}
 
 {% block scripts %}
+    <script src="{% static 'main/common_for_catalogs.js' %}"></script>
     <script>
-        const apiContractorsURL = "/api/contractors/";
-        const apiContractorCategories = "/api/contractor_categories/";
+        const apiURL = "/api/contractors/";
 
-        const userToken = localStorage.getItem("user_token");
-        $.ajaxSetup({"headers": {"Authorization": userToken}});
-
-        // Блок операторов с объявлением обработчиков событий
-        $("#clear-search-field-button").click(() => {
-            $("#search-field").val("");
-            contractorSearch();
-        });
-        $("#create-button").click(contractorCreate);
-        $("#search-button").click(contractorSearch);
-        $("#contractor-editor-close-button, #contractor-editor-cancel-button").click(() => closeModal($("#contractor-editor")));
-        $("#content-table th").click(contractorSort);
-
+        const apiContractorCategoriesURL = "/api/contractor_categories/";
         let contractorCategories = null;
-        let orderColumn = null;
-
-        function showModal($modal) {
-            document.body.style.overflow = "hidden";
-            $modal.show();
-        }
-
-        function closeModal($modal) {
-            document.body.style.overflow = "auto";
-            $modal.hide();
-        }
-
-        function formatDates(obj) {
-            //Приводим даты к более читаемому виду
-            let dateExp = /(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d:\d\d)/;
-            if ("dt_created" in obj) {
-                let [_, year, month, day, time] = dateExp.exec(obj.dt_created);
-                obj.dt_created = `${day}.${month}.${year} ${time}`;
-            }
-            if ("dt_updated" in obj) {
-                let [_, year, month, day, time] = dateExp.exec(obj.dt_updated);
-                obj.dt_updated = `${day}.${month}.${year} ${time}`;
-            }
-            return obj;
-        }
 
         function checkContractorFormData() {
             if ($("#contractor-title").val().trim() === "") {
@@ -104,7 +68,7 @@
 
         function showContractors(url) {
             if (!contractorCategories) {
-                $.ajax(apiContractorCategories, {
+                $.ajax(apiContractorCategoriesURL, {
                     "method": "GET",
                     "dataType": "json",
                     "async": false,
@@ -200,7 +164,7 @@
                     return;
                 }
 
-                let urlForRequest = `${apiContractorsURL}${selectedContractor.id}/`;
+                let urlForRequest = `${apiURL}${selectedContractor.id}/`;
                 $.ajax(urlForRequest, {
                     "method": "PATCH",
                     "dataType": "json",
@@ -251,7 +215,7 @@
                     return
                 }
 
-                $.ajax(apiContractorsURL, {
+                $.ajax(apiURL, {
                     "method": "POST",
                     "dataType": "json",
                     "data": {
@@ -261,59 +225,25 @@
                     "success": function (data) {
                         closeModal($("#contractor-editor"));
                         $("#search-field").val(data.id);
-                        showContractors(`${apiContractorsURL}${data.id}`);
+                        showContractors(`${apiURL}${data.id}`);
                     }
                 })
             })
         }
 
-        function contractorSearch() {
-            let urlForSearch;
-            let searchString = $("#search-field").val();
-            if (searchString) {
-                urlForSearch = `${apiContractorsURL}?search=${searchString}`;
-            } else {
-                urlForSearch = apiContractorsURL;
-            }
+        let contractorSearch = getSearchFunction(showContractors);
 
-            //Удаляем старые параметры сортировки
-            if (orderColumn) {
-                orderColumn.column.text(orderColumn.column.attr("display-name"));
-                orderColumn = null;
-            }
-            showContractors(urlForSearch);
-        }
+        let contractorSort = getSortFunction(showContractors);
 
-        function contractorSort() {
-            let $this = $(this);
+        $("#clear-search-field-button").click(() => {
+            $("#search-field").val("");
+            contractorSearch();
+        });
+        $("#create-button").click(contractorCreate);
+        $("#search-button").click(contractorSearch);
+        $("#contractor-editor-close-button, #contractor-editor-cancel-button").click(() => closeModal($("#contractor-editor")));
+        $("#content-table th").click(contractorSort);
 
-            if (orderColumn) {
-                if (orderColumn.column.attr("column-key") === $this.attr("column-key")) {
-                    orderColumn.order = {"+": "-", "-": "+"}[orderColumn.order]
-                } else {
-                    orderColumn.column.text(orderColumn.column.attr("display-name"));
-                    orderColumn = {
-                        column: $this,
-                        order: orderColumn.order
-                    };
-                }
-            } else {
-                orderColumn = {
-                    column: $this,
-                    order: "+"
-                };
-            }
-
-            orderColumn.column.text(orderColumn.column.attr("display-name") + "(" + orderColumn.order + ")");
-            let urlForRequest = apiContractorsURL + "?";
-            urlForRequest += "order=" + (orderColumn.order === "+" ? "" : "-") + $this.attr("column-key");
-
-            let searchText = $("#search-field").val();
-            urlForRequest += searchText ? "&search=" + searchText : "";
-
-            showContractors(urlForRequest);
-        }
-
-        showContractors(apiContractorsURL);
+        showContractors(apiURL);
     </script>
 {% endblock %}
