@@ -124,6 +124,11 @@
                     } else {
                         $nextPageButton.hide();
                     }
+                },
+                "error": function (jqXHR) {
+                    closeModal($("#product-editor"));
+                    let errorText = createErrorText(jqXHR);
+                    showMessage(errorText);
                 }
             })
         }
@@ -176,6 +181,13 @@
                         $row.data("product", data);
 
                         closeModal($("#product-editor"));
+                        //$("#search-field").val(data.id);
+                        //showProducts(`${apiURL}${data.id}`);
+                    },
+                    "error": function (jqXHR) {
+                        closeModal($("#product-editor"));
+                        let errorText = createErrorText(jqXHR);
+                        showMessage(errorText);
                     }
                 })
             });
@@ -213,6 +225,11 @@
                         closeModal($("#product-editor"));
                         $("#search-field").val(data.id);
                         showProducts(`${apiURL}${data.id}`);
+                    },
+                    "error": function (jqXHR) {
+                        closeModal($("#product-editor"));
+                        let errorText = createErrorText(jqXHR);
+                        showMessage(errorText);
                     }
                 })
             })

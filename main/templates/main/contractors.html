@@ -130,6 +130,11 @@
                     } else {
                         $nextPageButton.hide();
                     }
+                },
+                "error": function (jqXHR) {
+                    closeModal($("#contractor-editor"));
+                    let errorText = createErrorText(jqXHR);
+                    showMessage(errorText);
                 }
             })
         }
@@ -186,6 +191,13 @@
                         $row.data("contractor", data);
 
                         closeModal($("#contractor-editor"));
+                        //$("#search-field").val(data.id);
+                        //showContractors(`${apiURL}${data.id}`);
+                    },
+                    "error": function (jqXHR) {
+                        closeModal($("#contractor-editor"));
+                        let errorText = createErrorText(jqXHR);
+                        showMessage(errorText);
                     }
                 })
             })
@@ -226,6 +238,11 @@
                         closeModal($("#contractor-editor"));
                         $("#search-field").val(data.id);
                         showContractors(`${apiURL}${data.id}`);
+                    },
+                    "error": function (jqXHR) {
+                        closeModal($("#contractor-editor"));
+                        let errorText = createErrorText(jqXHR);
+                        showMessage(errorText);
                     }
                 })
             })

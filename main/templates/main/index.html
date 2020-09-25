@@ -1,5 +1,33 @@
 {% extends 'main/base_template.html' %}
 
+{% block message %}
+    <div class="modal" id="message-block" style="display: none">
+        <div>
+            <div>
+                <span class="span-button" id="message-block-close-button">X</span>
+            </div>
+            <div>
+                <p></p>
+            </div>
+            <div>
+                <span class="span-button" id="message-block-ok-button">Ок</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showMessage(msg) {
+            let $messageBlock = $("#message-block");
+            showModal($messageBlock);
+            $("p", $messageBlock).text(msg);
+        }
+
+        $("#message-block-close-button, #message-block-ok-button").click(() => {
+            closeModal($("#message-block"))
+        });
+    </script>
+{% endblock %}
+
 {% block menu %}
     <div id="header">
         <div class="basic-div">
@@ -61,13 +89,22 @@
                         </li>
                     </ul>
                 </li>
-                {% if user.is_superuser %}
-                    <li>
-                        <span>
-                            <a href="/admin/">Администрирование</a>
-                        </span>
-                    </li>
-                {% endif %}
+                <li>
+                    <span>Сервис</span>
+                    <ul>
+                        {% if user.is_superuser %}
+                            <li>
+                                <span>
+                                    <a href="/admin/">Администрирование</a>
+                                </span>
+                            </li>
+                        {% endif %}
+                        <li>
+                            <span>Журнал операций</span>
+                        </li>
+                    </ul>
+                </li>
+
             </ul>
         </div>
     </div>

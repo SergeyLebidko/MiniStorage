@@ -25,6 +25,22 @@ class ProductViewSet(viewsets.ModelViewSet):
             queryset = queryset.order_by(order)
         return queryset
 
+    def create(self, request, *args, **kwargs):
+        result = viewsets.ModelViewSet.create(self, request, *args, **kwargs)
+        pk = result.data['id']
+        created_product = Product.objects.get(pk=pk)
+        # TODO Вставить код регистрации в журнале
+        return result
+
+    def update(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        updated_product = Product.objects.filter(pk=pk).first()
+        result = viewsets.ModelViewSet.update(self, request, *args, **kwargs)
+        if updated_product:
+            updated_product.refresh_from_db()
+            # TODO Вставить код регистрации в журнале
+        return result
+
 
 class ContractorViewSet(viewsets.ModelViewSet):
     serializer_class = ContractorSerializer

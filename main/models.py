@@ -29,7 +29,7 @@ class Product(BaseDataModel):
     price = models.IntegerField(verbose_name='Цена')
 
     def __str__(self):
-        return self.title
+        return '{number:<6}|{title}'.format(number=self.pk, title=self.title)
 
     class Meta:
         verbose_name = 'Товар'
@@ -48,6 +48,9 @@ class Contractor(BaseDataModel):
 
     title = models.CharField(max_length=200, verbose_name='Наименование')
     category = models.CharField(max_length=20, choices=CONTRACTOR_CATEGORY, verbose_name='Категория')
+
+    def __str__(self):
+        return '{number:<6}|{title}'.format(number=self.pk, title=self.title)
 
     class Meta:
         verbose_name = 'Контрагент'

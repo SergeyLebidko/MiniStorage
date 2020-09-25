@@ -12,9 +12,14 @@
     <link rel="stylesheet" href="{% static 'main/content.css' %}">
     <link rel="stylesheet" href="{% static 'main/login.css' %}">
     <script src="{% static 'main/jquery-3.5.1.js' %}"></script>
+    <script src="{% static 'main/common.js' %}"></script>
     <title>MiniStorage</title>
 </head>
 <body>
+
+{% block message %}
+{% endblock %}
+
 {% block menu %}
 {% endblock %}
 

@@ -1,17 +1,4 @@
-const userToken = localStorage.getItem("user_token");
-$.ajaxSetup({"headers": {"Authorization": userToken}});
-
 let orderColumn = null;
-
-function showModal($modal) {
-    document.body.style.overflow = "hidden";
-    $modal.show();
-}
-
-function closeModal($modal) {
-    document.body.style.overflow = "auto";
-    $modal.hide();
-}
 
 function formatDates(obj) {
     //Приводим даты к более читаемому виду
