@@ -56,3 +56,14 @@ class Contractor(BaseDataModel):
         verbose_name = 'Контрагент'
         verbose_name_plural = 'Контрагенты'
         ordering = ['title']
+
+
+class Operation(models.Model):
+    username = models.CharField(max_length=200, verbose_name='Пользователь', null=True, blank=True)
+    operation = models.TextField(verbose_name='Операция')
+    dt_created = models.DateTimeField(verbose_name='Дата и время операции', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Операция'
+        verbose_name_plural = 'Операции'
+        ordering = ['-dt_created']

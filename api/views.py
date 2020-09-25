@@ -28,8 +28,10 @@ class ProductViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         result = viewsets.ModelViewSet.create(self, request, *args, **kwargs)
         pk = result.data['id']
-        created_product = Product.objects.get(pk=pk)
-        # TODO Вставить код регистрации в журнале
+        created_product = Product.objects.filter(pk=pk).first()
+        if created_product:
+            pass
+            # TODO Вставить код регистрации в журнале
         return result
 
     def update(self, request, *args, **kwargs):

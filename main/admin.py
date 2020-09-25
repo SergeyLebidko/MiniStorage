@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, Contractor, Token
+from .models import Product, Contractor, Operation, Token
 
 
 @admin.register(Token)
@@ -18,3 +18,8 @@ class ProductAdmin(admin.ModelAdmin):
 class ContractorAdmin(admin.ModelAdmin):
     list_display = ['id', 'title', 'category', 'dt_created', 'dt_updated', 'to_remove']
     list_display_links = ['title']
+
+
+@admin.register(Operation)
+class OperationAdmin(admin.ModelAdmin):
+    list_display = ['username', 'operation', 'dt_created']
