@@ -58,3 +58,7 @@ def model_to_xls(model, column_descriptions):
     os.remove(tmp_file_path)
 
     return bio
+
+
+def get_username_for_operation(user):
+    return user.get_full_name() or user.get_username()

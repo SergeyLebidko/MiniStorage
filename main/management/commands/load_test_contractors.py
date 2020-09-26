@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from main.models import Contractor
+from main.models import Contractor, Operation
 
 test_data = [
     ('ООО Рога и копыта', Contractor.ENTITY),
@@ -25,4 +25,7 @@ class Command(BaseCommand):
             data.append(Contractor(title=title, category=category))
 
         Contractor.objects.bulk_create(data)
+        Operation.objects.create(
+            operation=f'Командой load_test_contractors создано {len(test_data)} записей о контрагентах'
+        )
         print(f'Создано записей: {len(test_data)}')

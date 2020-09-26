@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from openpyxl import load_workbook
-from main.models import Product
+from main.models import Product, Operation
 
 
 class Command(BaseCommand):
@@ -34,4 +34,5 @@ class Command(BaseCommand):
             row += 1
 
         Product.objects.bulk_create(data)
+        Operation.objects.create(operation=f'Командой load_test_products создано {row - 1} записей о товарах')
         print(f'Создано записей: {row - 1}')
