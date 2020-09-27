@@ -41,6 +41,11 @@ def contractors(request):
     return render(request, 'main/contractors.html', context={})
 
 
+@login_required(login_url='login')
+def operations(request):
+    return render(request, 'main/operations.html', context={})
+
+
 def products_to_xls(request):
     column_descriptions = [
         {'machine_name': 'id', 'display_name': 'Номер'},

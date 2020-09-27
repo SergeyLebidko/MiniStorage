@@ -7,7 +7,7 @@ from django.db.models.query_utils import DeferredAttribute
 
 from utils import get_username_for_operation
 from main.models import Product, Contractor, Operation
-from .serializers import ProductSerializer, ContractorSerializer
+from .serializers import ProductSerializer, ContractorSerializer, OperationSerializer
 from .pagination import CustomPagination
 from .authentication import TokenAuthentication
 
@@ -106,3 +106,13 @@ class ContractorViewSet(RegisteredViewSet):
 def contractor_categories(request):
     data = {machine_name: human_name for machine_name, human_name in Contractor.CONTRACTOR_CATEGORY}
     return Response(data)
+
+
+class OperationViesSet(viewsets.ModelViewSet):
+    serializer_class = OperationSerializer
+    pagination_class = CustomPagination
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    filter_backends = [SearchFilter]
+    search_fields = ['username', 'operation']
+    queryset = Operation.objects.all()
