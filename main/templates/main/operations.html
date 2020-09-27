@@ -2,7 +2,89 @@
 {% load static %}
 
 {% block content %}
+    <div class="basic-div content-div" id="content-div">
+        <div class="operation-div">
+            <input type="text" name="search-field" id="search-field" value="">
+            <span class="span-button" id="search-button">Найти</span>
+            <span class="span-button" id="clear-search-field-button">Очистить</span>
+        </div>
+        <table id="content-table" class="content-table">
+            <tr>
+                <th>Дата</th>
+                <th>Пользователь</th>
+                <th>Операция</th>
+            </tr>
+        </table>
+        <div class="navigation-div">
+            <span class="span-button" id="prev-page-button">Предыдущая страница</span>
+            <span class="span-button" id="next-page-button">Следующая страница</span>
+        </div>
+    </div>
 {% endblock %}
 
 {% block scripts %}
+    <script src="{% static 'main/common_for_catalogs.js' %}"></script>
+    <script>
+        const apiURL = "/api/operations/";
+
+        function showOperations(url) {
+            $.ajax(url, {
+                "method": "GET",
+                "dataType": "json",
+                "success": function (data) {
+                    let operations = data.results;
+                    let nextPage = data.next;
+                    let prevPage = data.previous;
+
+                    //Создаем таблицу со списком контрагентов
+                    let $contentTable = $("#content-table");
+                    $("tr:not(:first-child)", $contentTable).remove()
+                    let $tableRow = null;
+                    for (let operation of operations) {
+                        formatDates(operation);
+                        $tableRow = $("<tr>");
+                        $tableRow.append($("<td>").text(operation.dt_created));
+                        $tableRow.append($("<td>").text(operation.username));
+                        $tableRow.append($("<td>").text(operation.operation));
+                        $contentTable.append($tableRow);
+                    }
+
+                    let $prevPageButton = $("#prev-page-button");
+                    if (prevPage) {
+                        $prevPageButton.show();
+                        $prevPageButton.off();
+                        $prevPageButton.click(() => {
+                            showOperations(prevPage);
+                        })
+                    } else {
+                        $prevPageButton.hide();
+                    }
+
+                    let $nextPageButton = $("#next-page-button");
+                    if (nextPage) {
+                        $nextPageButton.show();
+                        $nextPageButton.off();
+                        $nextPageButton.click(() => {
+                            showOperations(nextPage);
+                        })
+                    } else {
+                        $nextPageButton.hide();
+                    }
+                },
+                "error": function (jqXHR) {
+                    showAjaxError(jqXHR, $("#contractor-editor"));
+                }
+            })
+        }
+
+        let operationSearch = getSearchFunction(showOperations);
+
+         $("#clear-search-field-button").click(() => {
+            $("#search-field").val("");
+            operationSearch();
+        });
+        $("#search-button").click(operationSearch);
+
+        showOperations(apiURL);
+    </script>
 {% endblock %}

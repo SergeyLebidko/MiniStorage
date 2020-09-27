@@ -34,5 +34,8 @@ class Command(BaseCommand):
             row += 1
 
         Product.objects.bulk_create(data)
-        Operation.objects.create(operation=f'Командой load_test_products создано {row - 1} записей о товарах')
+        Operation.objects.create(
+            username='- Администратор системы -',
+            operation=f'Командой load_test_products создано {row - 1} записей о товарах'
+        )
         print(f'Создано записей: {row - 1}')

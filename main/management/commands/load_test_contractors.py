@@ -26,6 +26,7 @@ class Command(BaseCommand):
 
         Contractor.objects.bulk_create(data)
         Operation.objects.create(
+            username='- Администратор системы -',
             operation=f'Командой load_test_contractors создано {len(test_data)} записей о контрагентах'
         )
         print(f'Создано записей: {len(test_data)}')
