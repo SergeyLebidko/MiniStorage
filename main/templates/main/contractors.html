@@ -132,9 +132,7 @@
                     }
                 },
                 "error": function (jqXHR) {
-                    closeModal($("#contractor-editor"));
-                    let errorText = createErrorText(jqXHR);
-                    showMessage(errorText);
+                    showAjaxError(jqXHR, $("#contractor-editor"));
                 }
             })
         }
@@ -195,9 +193,7 @@
                         //showContractors(`${apiURL}${data.id}`);
                     },
                     "error": function (jqXHR) {
-                        closeModal($("#contractor-editor"));
-                        let errorText = createErrorText(jqXHR);
-                        showMessage(errorText);
+                        showAjaxError(jqXHR, $("#contractor-editor"));
                     }
                 })
             })
@@ -240,9 +236,7 @@
                         showContractors(`${apiURL}${data.id}`);
                     },
                     "error": function (jqXHR) {
-                        closeModal($("#contractor-editor"));
-                        let errorText = createErrorText(jqXHR);
-                        showMessage(errorText);
+                        showAjaxError(jqXHR, $("#contractor-editor"));
                     }
                 })
             })

@@ -126,9 +126,7 @@
                     }
                 },
                 "error": function (jqXHR) {
-                    closeModal($("#product-editor"));
-                    let errorText = createErrorText(jqXHR);
-                    showMessage(errorText);
+                    showAjaxError(jqXHR, $("#product-editor"));
                 }
             })
         }
@@ -185,9 +183,7 @@
                         //showProducts(`${apiURL}${data.id}`);
                     },
                     "error": function (jqXHR) {
-                        closeModal($("#product-editor"));
-                        let errorText = createErrorText(jqXHR);
-                        showMessage(errorText);
+                        showAjaxError(jqXHR, $("#product-editor"));
                     }
                 })
             });
@@ -227,9 +223,7 @@
                         showProducts(`${apiURL}${data.id}`);
                     },
                     "error": function (jqXHR) {
-                        closeModal($("#product-editor"));
-                        let errorText = createErrorText(jqXHR);
-                        showMessage(errorText);
+                        showAjaxError(jqXHR, $("#product-editor"));
                     }
                 })
             })
