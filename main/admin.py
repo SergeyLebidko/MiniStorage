@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, Contractor, Operation, Token
+from .models import Product, Contractor, Operation, StorageItem, Token
 
 
 @admin.register(Token)
@@ -23,3 +23,8 @@ class ContractorAdmin(admin.ModelAdmin):
 @admin.register(Operation)
 class OperationAdmin(admin.ModelAdmin):
     list_display = ['username', 'operation', 'dt_created']
+
+
+@admin.register(StorageItem)
+class StorageItemAdmin(admin.ModelAdmin):
+    list_display = ['id', 'product', 'count']
