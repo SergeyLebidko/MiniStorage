@@ -1,11 +1,11 @@
 from django.core.management.base import BaseCommand
-from main.models import Product, Contractor, Storage, Operation
+from main.models import Product, Contractor, StorageItem, Operation
 
 
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        Storage.objects.all().delete()
+        StorageItem.objects.all().delete()
         Product.objects.all().delete()
         Contractor.objects.all().delete()
         Operation.objects.create(

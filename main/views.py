@@ -46,6 +46,11 @@ def operations(request):
     return render(request, 'main/operations.html', context={})
 
 
+@login_required(login_url='login')
+def storage_items(request):
+    return render(request, 'main/storage_items.html', context={})
+
+
 def products_to_xls(request):
     column_descriptions = [
         {'machine_name': 'id', 'display_name': 'Номер'},

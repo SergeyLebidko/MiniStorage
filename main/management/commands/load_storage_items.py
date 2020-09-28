@@ -1,6 +1,6 @@
 import random
 from django.core.management.base import BaseCommand
-from main.models import Product, Storage, Operation
+from main.models import Product, StorageItem, Operation
 
 
 class Command(BaseCommand):
@@ -11,10 +11,12 @@ class Command(BaseCommand):
             print('Справочник Товары пуст. Перед выполнением команды заполните справочник.')
             return
 
+        StorageItem.objects.all().delete()
+
         data = []
         for product in products:
-            data.append(Storage(product=product, count=random.randint(1, 1000)))
-        Storage.objects.bulk_create(data)
+            data.append(StorageItem(product=product, count=random.randint(1, 1000)))
+        StorageItem.objects.bulk_create(data)
 
         Operation.objects.create(
             username='- Администратор системы -',

@@ -21,6 +21,12 @@ class OperationSerializer(serializers.ModelSerializer):
 
 
 class StorageItemSerializer(serializers.ModelSerializer):
+
+    def to_representation(self, instance):
+        result = serializers.ModelSerializer.to_representation(self, instance)
+        result['product_title'] = instance.product.title
+        return result
+
     class Meta:
         model = StorageItem
-        fields = '__all__'
+        fields = ['id', 'product', 'product', 'count']

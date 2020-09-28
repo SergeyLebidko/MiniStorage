@@ -1,0 +1,97 @@
+{% extends 'main/index.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="basic-div content-div" id="content-div">
+        <div class="operation-div">
+            <input type="text" name="search-field" id="search-field" value="">
+            <span class="span-button" id="search-button">Найти</span>
+            <span class="span-button" id="clear-search-field-button">Очистить</span>
+        </div>
+        <div id="search-result" style="display: none; position: absolute; background: white">
+            Здесь будут результаты поиска
+            <p>
+                Этот длинный абзац текста введен сюда для примера.
+                Не тратьте свое время и нервы на обманщиков!
+                Будьте в курсе где не стоит работать!
+                Пишите в "Предложить новость" о людях и организациях с недобросовестным обслуживанием, о неудачном опыте
+                походов в кафе, магазины. Пусть все знают!
+                Вы решили нормально отдохнуть, а вас развели на счет, мы хотим точно знать название этого клуба.
+                Мы не стремимся к тому, чтобы негативных отзывов было много, и предпринимательство Краснодара
+                загибалось. Мы действительно хотим, чтобы люди просто уважали людей только за то, что они люди.
+            </p>
+        </div>
+        <table id="content-table" class="content-table">
+            <tr>
+                <th>Номер</th>
+                <th>Наименование</th>
+                <th>Количество</th>
+            </tr>
+        </table>
+        <div class="navigation-div">
+            <span class="span-button" id="prev-page-button">Предыдущая страница</span>
+            <span class="span-button" id="next-page-button">Следующая страница</span>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        const apiURL = "/api/storage_items/";
+
+        function showStorageItems(url) {
+            $.ajax(url, {
+                "method": "GET",
+                "dataType": "json",
+                "success": function (data) {
+                    let storageItems = data.results;
+                    let nextPage = data.next;
+                    let prevPage = data.previous;
+
+                    //Создаем таблицу со списком контрагентов
+                    let $contentTable = $("#content-table");
+                    $("tr:not(:first-child)", $contentTable).remove()
+                    let $tableRow = null;
+                    for (let storageItem of storageItems) {
+                        $tableRow = $("<tr>");
+                        $tableRow.append($("<td>").text(storageItem.product));
+                        $tableRow.append($("<td>").text(storageItem.product_title));
+                        $tableRow.append($("<td>").text(storageItem.count));
+                        $contentTable.append($tableRow);
+                    }
+
+                    let $prevPageButton = $("#prev-page-button");
+                    if (prevPage) {
+                        $prevPageButton.show();
+                        $prevPageButton.off();
+                        $prevPageButton.click(() => {
+                            showStorageItems(prevPage);
+                        })
+                    } else {
+                        $prevPageButton.hide();
+                    }
+
+                    let $nextPageButton = $("#next-page-button");
+                    if (nextPage) {
+                        $nextPageButton.show();
+                        $nextPageButton.off();
+                        $nextPageButton.click(() => {
+                            showStorageItems(nextPage);
+                        })
+                    } else {
+                        $nextPageButton.hide();
+                    }
+                },
+                "error": function (jqXHR) {
+                    showAjaxError(jqXHR, $("#contractor-editor"));
+                }
+            })
+        }
+
+        $("#search-button").click(()=>{
+            $("#search-result").show();
+        })
+
+        showStorageItems(apiURL);
+    </script>
+{% endblock %}
