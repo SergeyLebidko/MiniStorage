@@ -41,7 +41,7 @@ function getSearchFunction(showFunc, $searchField = $("#search-field")) {
     return search;
 }
 
-function getSortFunction(showFunc) {
+function getSortFunction(showFunc, $searchField = $("#search-field")) {
     function sort() {
         let $this = $(this);
 
@@ -66,7 +66,7 @@ function getSortFunction(showFunc) {
         let urlForRequest = apiURL + "?";
         urlForRequest += "order=" + (orderColumn.order === "+" ? "" : "-") + $this.attr("column-key");
 
-        let searchText = $("#search-field").val();
+        let searchText = $searchField.val();
         urlForRequest += searchText ? "&search=" + searchText : "";
 
         showFunc(urlForRequest);

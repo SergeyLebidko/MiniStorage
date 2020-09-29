@@ -100,7 +100,7 @@
 
         let storageItemsSearch = getSearchFunction(showStorageItems, $("#search-storage-item-field"));
 
-        let storageItemSort = getSortFunction(showStorageItems);
+        let storageItemSort = getSortFunction(showStorageItems, $("#search-storage-item-field"));
 
         //Обработчики для событий панели поиска StorageItem
         $("#search-storage-item-button").click(() => {
