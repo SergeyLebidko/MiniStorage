@@ -1,0 +1,10 @@
+.search-result-div {
+    width: 800px;
+    max-height: 800px;
+    position: absolute;
+    padding: 10px;
+    background: white;
+    border: 1px solid RGB(200, 200, 200);
+    border-radius: 4px;
+    overflow: auto;
+}

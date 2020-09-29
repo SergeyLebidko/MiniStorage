@@ -123,4 +123,18 @@ class StorageItemViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPagination
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    queryset = StorageItem.objects.all()
+    filter_backends = [SearchFilter]
+    search_fields = ['product__id', 'product__title']
+
+    def get_queryset(self):
+        queryset = StorageItem.objects.all()
+        order = self.request.query_params.get('order')
+        if order:
+            prefix = '-' if order.startswith('-') else ''
+            if order.endswith('product'):
+                queryset = queryset.order_by(f'{prefix}product_id')
+            if order.endswith('product_title'):
+                queryset = queryset.order_by(f'{prefix}product__title')
+            if order.endswith('count'):
+                queryset = queryset.order_by(f'{prefix}count')
+        return queryset

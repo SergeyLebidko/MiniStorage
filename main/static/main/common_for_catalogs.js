@@ -14,11 +14,15 @@ function formatDates(obj) {
     return obj;
 }
 
-function getSearchFunction(showFunc) {
+function getSearchFunction(showFunc, $searchField = $("#search-field")) {
     function search() {
         //Формируем url для поискового запроса
         let urlForSearch;
-        let searchString = $("#search-field").val();
+        let searchString = $searchField.val();
+
+        console.log();
+        console.log(searchString);
+
         if (searchString) {
             urlForSearch = `${apiURL}?search=${searchString}`;
         } else {
@@ -30,6 +34,7 @@ function getSearchFunction(showFunc) {
             orderColumn.column.text(orderColumn.column.attr("display-name"));
             orderColumn = null;
         }
+
         showFunc(urlForSearch);
     }
 
@@ -66,5 +71,6 @@ function getSortFunction(showFunc) {
 
         showFunc(urlForRequest);
     }
+
     return sort;
 }

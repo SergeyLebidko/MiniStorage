@@ -3,12 +3,21 @@
 
 {% block content %}
     <div class="basic-div content-div" id="content-div">
+
         <div class="operation-div">
-            <input type="text" name="search-field" id="search-field" value="">
-            <span class="span-button" id="search-button">Найти</span>
-            <span class="span-button" id="clear-search-field-button">Очистить</span>
+            <input type="text" name="search-storage-item-field" id="search-storage-item-field" value="">
+            <span class="span-button" id="search-storage-item-button">Найти</span>
+            <span class="span-button" id="clear-search-storage-item-field-button">Очистить</span>
+            <span class="span-button" id="show-storage-item-append-div-button">+</span>
         </div>
-        <div id="search-result" style="display: none; position: absolute; background: white">
+
+        <div class="operation-div" id="storage-item-append-div" style="display: none">
+            <input type="text" name="search-product-field" id="search-product-field" value="">
+            <span class="span-button" id="search-product-button">Найти</span>
+            <span class="span-button" id="clear-search-product-field-button">Очистить</span>
+        </div>
+
+        <div class="search-result-div" id="search-product-result-div" style="display: none">
             Здесь будут результаты поиска
             <p>
                 Этот длинный абзац текста введен сюда для примера.
@@ -23,9 +32,9 @@
         </div>
         <table id="content-table" class="content-table">
             <tr>
-                <th>Номер</th>
-                <th>Наименование</th>
-                <th>Количество</th>
+                <th column-key="product" display-name="Номер">Номер</th>
+                <th column-key="product_title" display-name="Наименование">Наименование</th>
+                <th column-key="count" display-name="Количество">Количество</th>
             </tr>
         </table>
         <div class="navigation-div">
@@ -36,6 +45,7 @@
 {% endblock %}
 
 {% block scripts %}
+    <script src="{% static 'main/common_for_catalogs.js' %}"></script>
     <script>
         const apiURL = "/api/storage_items/";
 
@@ -88,9 +98,35 @@
             })
         }
 
-        $("#search-button").click(()=>{
-            $("#search-result").show();
-        })
+        let storageItemsSearch = getSearchFunction(showStorageItems, $("#search-storage-item-field"));
+
+        let storageItemSort = getSortFunction(showStorageItems);
+
+        //Обработчики для событий панели поиска StorageItem
+        $("#search-storage-item-button").click(() => {
+            storageItemsSearch();
+            $("#search-product-result-div").hide();
+        });
+        $("#clear-search-storage-item-field-button").click(() => {
+            $("#search-storage-item-field").val("");
+            storageItemsSearch();
+            $("#search-product-result-div").hide();
+        });
+        $("#show-storage-item-append-div-button").click(() => {
+            let buttonText = $("#show-storage-item-append-div-button").text();
+            buttonText = buttonText === "-" ? "+" : "-";
+            $("#show-storage-item-append-div-button").text(buttonText);
+            $("#storage-item-append-div").slideToggle("normal");
+            $("#search-product-result-div").hide();
+        });
+
+        //Обработчики событий панели добавления остатков
+        $("#search-product-button").click(() => {
+            $("#search-product-result-div").show();
+        });
+
+        //Обработчик события клика по заголовку столбца (сортировка)
+        $("#content-table th").click(storageItemSort);
 
         showStorageItems(apiURL);
     </script>
