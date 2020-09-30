@@ -5,31 +5,20 @@
     <div class="basic-div content-div" id="content-div">
 
         <div class="operation-div">
-            <input type="text" name="search-storage-item-field" id="search-storage-item-field" value="">
-            <span class="span-button" id="search-storage-item-button">Найти</span>
-            <span class="span-button" id="clear-search-storage-item-field-button">Очистить</span>
-            <span class="span-button" id="show-storage-item-append-div-button">+</span>
+            <input type="text" name="search-si-field" id="search-si-field" value="">
+            <span class="span-button" id="search-si-button">Найти</span>
+            <span class="span-button" id="clear-search-si-field-button">Очистить</span>
+            <span class="span-button" id="show-si-append-div-button">+</span>
         </div>
 
-        <div class="operation-div" id="storage-item-append-div" style="display: none">
-            <input type="text" name="search-product-field" id="search-product-field" value="">
-            <span class="span-button" id="search-product-button">Найти</span>
-            <span class="span-button" id="clear-search-product-field-button">Очистить</span>
+        <div class="operation-div" id="si-append-div" style="display: none">
+            <input type="text" name="search-p-field" id="search-p-field" value="">
+            <span class="span-button" id="search-p-button">Найти</span>
+            <span class="span-button" id="clear-search-p-field-button">Очистить</span>
         </div>
 
-        <div class="search-result-div" id="search-product-result-div" style="display: none">
-            Здесь будут результаты поиска
-            <p>
-                Этот длинный абзац текста введен сюда для примера.
-                Не тратьте свое время и нервы на обманщиков!
-                Будьте в курсе где не стоит работать!
-                Пишите в "Предложить новость" о людях и организациях с недобросовестным обслуживанием, о неудачном опыте
-                походов в кафе, магазины. Пусть все знают!
-                Вы решили нормально отдохнуть, а вас развели на счет, мы хотим точно знать название этого клуба.
-                Мы не стремимся к тому, чтобы негативных отзывов было много, и предпринимательство Краснодара
-                загибалось. Мы действительно хотим, чтобы люди просто уважали людей только за то, что они люди.
-            </p>
-        </div>
+        <div class="search-result-div" id="search-p-result-div" style="display: none"></div>
+
         <table id="content-table" class="content-table">
             <tr>
                 <th column-key="product" display-name="Номер">Номер</th>
@@ -48,6 +37,7 @@
     <script src="{% static 'main/common_for_catalogs.js' %}"></script>
     <script>
         const apiURL = "/api/storage_items/";
+        const apiProductsURL = "/api/products/";
 
         function showStorageItems(url) {
             $.ajax(url, {
@@ -98,31 +88,76 @@
             })
         }
 
-        let storageItemsSearch = getSearchFunction(showStorageItems, $("#search-storage-item-field"));
+        function getProductsList(url) {
+            $.ajax(url, {
+                "method": "GET",
+                "dataType": "json",
+                "success": function (data) {
+                    let products = data.results;
+                    let nextPage = data.next;
+                    let $resultDiv = $("#search-p-result-div");
+                    for (let product of products) {
+                        $resultDiv.append($("<p>").text(product.title));
+                    }
 
-        let storageItemSort = getSortFunction(showStorageItems, $("#search-storage-item-field"));
+                    $resultDiv.scroll(() => {
+                        let scrollTop = $resultDiv.scrollTop();
+                        let scrollHeight = $resultDiv.get(0).scrollHeight;
+                        let clientHeight = $resultDiv.get(0).clientHeight;
+
+                        let downloadTriggerValue = scrollHeight - (scrollTop + clientHeight);
+                        if (downloadTriggerValue < 50 && nextPage) {
+                            getProductsList(nextPage);
+                            $resultDiv.off();
+                        }
+                    })
+                },
+                "error": function (jqXHR) {
+                    $("#search-p-result-div").slideUp("normal");
+                    showAjaxError(jqXHR);
+                }
+
+            })
+        }
+
+        let storageItemsSearch = getSearchFunction(showStorageItems, $("#search-si-field"), apiURL);
+
+        let storageItemSort = getSortFunction(showStorageItems, $("#search-si-field"), apiURL);
 
         //Обработчики для событий панели поиска StorageItem
-        $("#search-storage-item-button").click(() => {
+        $("#search-si-button").click(() => {
             storageItemsSearch();
-            $("#search-product-result-div").hide();
+            $("#search-p-result-div").hide();
         });
-        $("#clear-search-storage-item-field-button").click(() => {
-            $("#search-storage-item-field").val("");
+        $("#clear-search-si-field-button").click(() => {
+            $("#search-si-field").val("");
             storageItemsSearch();
-            $("#search-product-result-div").hide();
+            $("#search-p-result-div").hide();
         });
-        $("#show-storage-item-append-div-button").click(() => {
-            let buttonText = $("#show-storage-item-append-div-button").text();
+        $("#show-si-append-div-button").click(() => {
+            let buttonText = $("#show-si-append-div-button").text();
             buttonText = buttonText === "-" ? "+" : "-";
-            $("#show-storage-item-append-div-button").text(buttonText);
-            $("#storage-item-append-div").slideToggle("normal");
-            $("#search-product-result-div").hide();
+            $("#show-si-append-div-button").text(buttonText);
+            $("#si-append-div").slideToggle("normal");
+            $("#search-p-result-div").hide();
         });
 
         //Обработчики событий панели добавления остатков
-        $("#search-product-button").click(() => {
-            $("#search-product-result-div").show();
+        $("#search-p-button").click(() => {
+            let searchString = $("#search-p-field").val();
+            if (!searchString) {
+                return;
+            }
+
+            let $resultDiv = $("#search-p-result-div");
+            $resultDiv.empty();
+            $resultDiv.slideDown("normal");
+
+            getProductsList(`${apiProductsURL}?search=${searchString}`);
+        });
+        $("#clear-search-p-field-button").click(() => {
+            $("#search-p-field").val("");
+            $("#search-p-result-div").slideUp("normal");
         });
 
         //Обработчик события клика по заголовку столбца (сортировка)

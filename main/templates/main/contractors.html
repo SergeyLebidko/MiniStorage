@@ -242,9 +242,9 @@
             })
         }
 
-        let contractorSearch = getSearchFunction(showContractors);
+        let contractorSearch = getSearchFunction(showContractors, $("#search-field"), apiURL);
 
-        let contractorSort = getSortFunction(showContractors);
+        let contractorSort = getSortFunction(showContractors, $("#search-field"), apiURL);
 
         $("#clear-search-field-button").click(() => {
             $("#search-field").val("");

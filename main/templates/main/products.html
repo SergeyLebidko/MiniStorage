@@ -229,9 +229,9 @@
             })
         }
 
-        let productSearch = getSearchFunction(showProducts);
+        let productSearch = getSearchFunction(showProducts, $("#search-field"), apiURL);
 
-        let productSort = getSortFunction(showProducts);
+        let productSort = getSortFunction(showProducts, $("#search-field"), apiURL);
 
         $("#clear-search-field-button").click(() => {
             $("#search-field").val("");

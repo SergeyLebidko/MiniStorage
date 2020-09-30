@@ -22,8 +22,10 @@
             $("p", $messageBlock).text(msg);
         }
 
-        function showAjaxError(jqXHR, $modal) {
-            closeModal($modal);
+        function showAjaxError(jqXHR, $modal = null) {
+            if ($modal) {
+                closeModal($modal);
+            }
             let errorText;
             if ('responseText' in jqXHR) {
                 if (jqXHR.status >= 500) {

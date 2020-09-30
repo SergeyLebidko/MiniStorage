@@ -14,19 +14,15 @@ function formatDates(obj) {
     return obj;
 }
 
-function getSearchFunction(showFunc, $searchField = $("#search-field")) {
+function getSearchFunction(showFunc, $searchField, baseURL) {
     function search() {
         //Формируем url для поискового запроса
         let urlForSearch;
         let searchString = $searchField.val();
-
-        console.log();
-        console.log(searchString);
-
         if (searchString) {
-            urlForSearch = `${apiURL}?search=${searchString}`;
+            urlForSearch = `${baseURL}?search=${searchString}`;
         } else {
-            urlForSearch = apiURL;
+            urlForSearch = baseURL;
         }
 
         //Удаляем старые параметры сортировки
@@ -41,7 +37,7 @@ function getSearchFunction(showFunc, $searchField = $("#search-field")) {
     return search;
 }
 
-function getSortFunction(showFunc, $searchField = $("#search-field")) {
+function getSortFunction(showFunc, $searchField, baseURL) {
     function sort() {
         let $this = $(this);
 
@@ -63,7 +59,7 @@ function getSortFunction(showFunc, $searchField = $("#search-field")) {
         }
 
         orderColumn.column.text(orderColumn.column.attr("display-name") + "(" + orderColumn.order + ")");
-        let urlForRequest = apiURL + "?";
+        let urlForRequest = baseURL + "?";
         urlForRequest += "order=" + (orderColumn.order === "+" ? "" : "-") + $this.attr("column-key");
 
         let searchText = $searchField.val();
