@@ -35,7 +35,7 @@
             <div>
                 Номер: <span id="contractor-number"></span><br><br>
                 Дата создания: <span id="contractor-dt-created"></span><br><br>
-                Дата изменения <span id="contractor-dt-updated"></span><br><br>
+                Дата изменения: <span id="contractor-dt-updated"></span><br><br>
                 <fieldset>
                     Наименование:<br><input type="text" name="contractor-title" id="contractor-title" value="" required><br><br>
                     Категория:
@@ -53,7 +53,6 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="{% static 'main/common_for_catalogs.js' %}"></script>
     <script>
         const apiURL = "/api/contractors/";
 

@@ -34,10 +34,29 @@
 {% endblock %}
 
 {% block modals %}
+    <div class="modal" id="si-editor" style="display: none">
+        <div>
+            <div>
+                <span class="span-button" id="si-close-button">X</span>
+            </div>
+            <div>
+                Номер: <span id="product-number"></span><br><br>
+                Наименование: <span id="product-title"></span><br><br>
+                <fieldset>
+                    Количество: <input type="text" name="product-count" id="product-count" value="" required><br><br>
+                    Пометить на удаление: <input type="checkbox" name="product-to-remove" id="product-to-remove">
+                </fieldset>
+            </div>
+            <br>
+            <div>
+                <span class="span-button" id="si-cancel-button">Отмена</span>
+                <span class="span-button" id="si-save-button">Сохранить</span>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block scripts %}
-    <script src="{% static 'main/common_for_catalogs.js' %}"></script>
     <script>
         const apiURL = "/api/storage_items/";
         const apiProductsURL = "/api/products/";
@@ -60,8 +79,10 @@
                         $tableRow.append($("<td>").text(storageItem.product));
                         $tableRow.append($("<td>").text(storageItem.product_title));
                         $tableRow.append($("<td>").text(storageItem.count));
+                        $tableRow.data("storageItem", storageItem);
                         $contentTable.append($tableRow);
                     }
+                    $contentTable.on("click", "tr:not(:first-child)", storageItemEdit);
 
                     let $prevPageButton = $("#prev-page-button");
                     if (prevPage) {
@@ -91,50 +112,25 @@
             })
         }
 
-        function StorageItemEdit() {
+        function storageItemEdit() {
+            let selectedStorageItem = $(this).data("storageItem");
+
+            let $row = $(this);
+
+            showModal($("#si-editor"));
+            $("#product-number").text(selectedStorageItem.product);
+            $("#product-title").text(selectedStorageItem.product_title);
+            $("#product-count").val(selectedStorageItem.count);
             //TODO Вставить код редактирования StorageItem
-        }
-
-        function getProductsList(url) {
-            $.ajax(url, {
-                "method": "GET",
-                "dataType": "json",
-                "success": function (data) {
-                    let products = data.results;
-                    let nextPage = data.next;
-                    let $resultDiv = $("#search-p-result-div");
-                    $resultDiv.data("nextPage", nextPage);
-                    for (let product of products) {
-                        $resultDiv.append($("<p>").text(product.title).data("element", product));
-                    }
-                },
-                "error": function (jqXHR) {
-                    $("#search-p-result-div").slideUp("normal");
-                    showAjaxError(jqXHR);
-                }
-
-            })
-        }
-
-        function scrollFunction() {
-            let $this = $(this);
-            let nextPage = $this.data("nextPage");
-            if (!nextPage) return;
-
-            let downloadTriggerValue = this.scrollHeight - (this.scrollTop + this.clientHeight);
-            if (downloadTriggerValue < 50) {
-                getProductsList(nextPage);
-            }
-        }
-
-        function clickFunction(event) {
-            console.log($(event.target).data("element"));
-            //TODO Вставить код создания StorageItem
         }
 
         let storageItemsSearch = getSearchFunction(showStorageItems, $("#search-si-field"), apiURL);
 
         let storageItemSort = getSortFunction(showStorageItems, $("#search-si-field"), apiURL);
+
+        let downloadProductsList = getDownloadListFunction($("#search-p-result-div"));
+
+        let scrollProductsList = getScrollListFunction(downloadProductsList);
 
         //Обработчики для событий панели поиска StorageItem
         $("#search-si-button").click(() => {
@@ -165,17 +161,23 @@
             $resultDiv.empty();
             $resultDiv.slideDown("normal");
 
-            getProductsList(`${apiProductsURL}?search=${searchString}`);
+            downloadProductsList(`${apiProductsURL}?search=${searchString}`);
         });
-        $("#search-p-result-div").scroll(scrollFunction);
-        $("#search-p-result-div").click(clickFunction);
+        $("#search-p-result-div").scroll(scrollProductsList);
         $("#clear-search-p-field-button").click(() => {
             $("#search-p-field").val("");
             $("#search-p-result-div").slideUp("normal");
         });
+        $("#search-p-result-div").click((event) => {
+            let product = $(event.target).data("element")
+            //TODO Вставить код создания StorageItem
+        });
 
         //Обработчик события клика по заголовку столбца (сортировка)
         $("#content-table th").click(storageItemSort);
+
+        //Обработчики событий модального окна
+        $("#si-close-button, #si-cancel-button").click(() => closeModal($("#si-editor")));
 
         showStorageItems(apiURL);
     </script>
