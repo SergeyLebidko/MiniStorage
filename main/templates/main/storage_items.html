@@ -33,6 +33,9 @@
     </div>
 {% endblock %}
 
+{% block modals %}
+{% endblock %}
+
 {% block scripts %}
     <script src="{% static 'main/common_for_catalogs.js' %}"></script>
     <script>
@@ -88,6 +91,10 @@
             })
         }
 
+        function StorageItemEdit() {
+            //TODO Вставить код редактирования StorageItem
+        }
+
         function getProductsList(url) {
             $.ajax(url, {
                 "method": "GET",
@@ -96,21 +103,10 @@
                     let products = data.results;
                     let nextPage = data.next;
                     let $resultDiv = $("#search-p-result-div");
+                    $resultDiv.data("nextPage", nextPage);
                     for (let product of products) {
-                        $resultDiv.append($("<p>").text(product.title));
+                        $resultDiv.append($("<p>").text(product.title).data("element", product));
                     }
-
-                    $resultDiv.scroll(() => {
-                        let scrollTop = $resultDiv.scrollTop();
-                        let scrollHeight = $resultDiv.get(0).scrollHeight;
-                        let clientHeight = $resultDiv.get(0).clientHeight;
-
-                        let downloadTriggerValue = scrollHeight - (scrollTop + clientHeight);
-                        if (downloadTriggerValue < 50 && nextPage) {
-                            getProductsList(nextPage);
-                            $resultDiv.off();
-                        }
-                    })
                 },
                 "error": function (jqXHR) {
                     $("#search-p-result-div").slideUp("normal");
@@ -118,6 +114,22 @@
                 }
 
             })
+        }
+
+        function scrollFunction() {
+            let $this = $(this);
+            let nextPage = $this.data("nextPage");
+            if (!nextPage) return;
+
+            let downloadTriggerValue = this.scrollHeight - (this.scrollTop + this.clientHeight);
+            if (downloadTriggerValue < 50) {
+                getProductsList(nextPage);
+            }
+        }
+
+        function clickFunction(event) {
+            console.log($(event.target).data("element"));
+            //TODO Вставить код создания StorageItem
         }
 
         let storageItemsSearch = getSearchFunction(showStorageItems, $("#search-si-field"), apiURL);
@@ -155,6 +167,8 @@
 
             getProductsList(`${apiProductsURL}?search=${searchString}`);
         });
+        $("#search-p-result-div").scroll(scrollFunction);
+        $("#search-p-result-div").click(clickFunction);
         $("#clear-search-p-field-button").click(() => {
             $("#search-p-field").val("");
             $("#search-p-result-div").slideUp("normal");
