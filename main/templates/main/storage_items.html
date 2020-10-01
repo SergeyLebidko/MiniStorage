@@ -86,9 +86,15 @@
                 "method": "GET",
                 "dataType": "json",
                 "success": function (data) {
-                    let storageItems = data.results;
-                    let nextPage = data.next;
-                    let prevPage = data.previous;
+                    let storageItems, nextPage, prevPage;
+                    if ("results" in data) {
+                        storageItems = data.results;
+                        nextPage = data.next;
+                        prevPage = data.previous;
+                    } else {
+                        storageItems = [data];
+                        nextPage = prevPage = null;
+                    }
 
                     //Создаем таблицу со списком контрагентов
                     let $contentTable = $("#content-table");
@@ -232,8 +238,24 @@
             $("#search-p-result-div").slideUp("normal");
         });
         $("#search-p-result-div").click((event) => {
+            $("#search-p-result-div").slideUp();
             let product = $(event.target).data("element")
-            //TODO Вставить код создания StorageItem
+
+            $.ajax(apiURL, {
+                "method": "POST",
+                "dataType": "json",
+                "data": {
+                    "product": product.id,
+                    "count": 1
+                },
+                "success": function (data) {
+                    $("#search-si-field").val(data.id);
+                    showStorageItems(`${apiURL}${data.id}`);
+                },
+                "error": function (jqXHR) {
+                    showAjaxError(jqXHR);
+                }
+            })
         });
 
         //Обработчик события клика по заголовку столбца (сортировка)
