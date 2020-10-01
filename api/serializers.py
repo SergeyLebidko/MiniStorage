@@ -29,4 +29,4 @@ class StorageItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StorageItem
-        fields = ['id', 'product', 'product', 'count']
+        fields = ['id', 'product', 'product', 'count', 'dt_created', 'dt_updated', 'to_remove']

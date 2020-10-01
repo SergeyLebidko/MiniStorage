@@ -16,34 +16,6 @@
     </div>
 
     <script>
-        function showMessage(msg) {
-            let $messageBlock = $("#message-block");
-            showModal($messageBlock);
-            $("p", $messageBlock).text(msg);
-        }
-
-        function showAjaxError(jqXHR, $modal = null) {
-            if ($modal) {
-                closeModal($modal);
-            }
-            let errorText;
-            if ('responseText' in jqXHR) {
-                if (jqXHR.status >= 500) {
-                    errorText = `(${jqXHR.status}. ${jqXHR.statusText}) Внутренняя ошибка сервера`;
-                } else {
-                    let responseObj = JSON.parse(jqXHR.responseText);
-                    let errors = [];
-                    for (let key of Object.keys(responseObj)) {
-                        errors.push(responseObj[key]);
-                    }
-                    errorText = `(${jqXHR.status}. ${jqXHR.statusText}) ${errors.join(" ")}`;
-                }
-            } else {
-                errorText = "Сервер не доступен...";
-            }
-            showMessage(errorText);
-        }
-
         $("#message-block-close-button, #message-block-ok-button").click(() => {
             closeModal($("#message-block"))
         });

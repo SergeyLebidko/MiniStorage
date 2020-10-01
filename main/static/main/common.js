@@ -3,6 +3,36 @@ $.ajaxSetup({"headers": {"Authorization": userToken}});
 
 let orderColumn = null;
 
+//Вывод сообщений в специальное модальное окно
+
+function showMessage(msg) {
+    let $messageBlock = $("#message-block");
+    showModal($messageBlock);
+    $("p", $messageBlock).text(msg);
+}
+
+function showAjaxError(jqXHR, $modal = null) {
+    if ($modal) {
+        closeModal($modal);
+    }
+    let errorText;
+    if ('responseText' in jqXHR) {
+        if (jqXHR.status >= 500) {
+            errorText = `(${jqXHR.status}. ${jqXHR.statusText}) Внутренняя ошибка сервера`;
+        } else {
+            let responseObj = JSON.parse(jqXHR.responseText);
+            let errors = [];
+            for (let key of Object.keys(responseObj)) {
+                errors.push(responseObj[key]);
+            }
+            errorText = `(${jqXHR.status}. ${jqXHR.statusText}) ${errors.join(" ")}`;
+        }
+    } else {
+        errorText = "Сервер не доступен...";
+    }
+    showMessage(errorText);
+}
+
 //Закрытие открытие модальных окон с блокировкой/разблокированием скролла страницы
 
 function showModal($modal) {
@@ -101,6 +131,10 @@ function getDownloadListFunction($resultDiv) {
                 let products = data.results;
                 let nextPage = data.next;
                 $resultDiv.data("nextPage", nextPage);
+                if (products.length === 0) {
+                    $resultDiv.append($("<span>").text("Ничего не найдено..."));
+                    return;
+                }
                 for (let product of products) {
                     $resultDiv.append($("<p>").text(product.title).data("element", product));
                 }

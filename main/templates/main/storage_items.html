@@ -24,6 +24,9 @@
                 <th column-key="product" display-name="Номер">Номер</th>
                 <th column-key="product_title" display-name="Наименование">Наименование</th>
                 <th column-key="count" display-name="Количество">Количество</th>
+                <th column-key="dt_created" display-name="Дата создания">Дата создания</th>
+                <th column-key="dt_updated" display-name="Дата изменения">Дата изменения</th>
+                <th column-key="to_remove" display-name="Удл.">Удл.</th>
             </tr>
         </table>
         <div class="navigation-div">
@@ -42,6 +45,8 @@
             <div>
                 Номер: <span id="product-number"></span><br><br>
                 Наименование: <span id="product-title"></span><br><br>
+                Дата создания: <span id="product-dt-created"></span><br><br>
+                Дата изменения <span id="product-dt-updated"></span><br><br>
                 <fieldset>
                     Количество: <input type="text" name="product-count" id="product-count" value="" required><br><br>
                     Пометить на удаление: <input type="checkbox" name="product-to-remove" id="product-to-remove">
@@ -61,6 +66,21 @@
         const apiURL = "/api/storage_items/";
         const apiProductsURL = "/api/products/";
 
+        function checkStorageItemFormData() {
+            //Проверяем корректность внесения данных
+            let countValue = $("#product-count").val().trim();
+            if (countValue.length === 0) {
+                throw new Error("Количество не может быть пустым!");
+            }
+            if (!/^\d+$/.test(countValue)) {
+                throw new Error("Поле цены заполнено некорректно!");
+            }
+            countValue = new Number(countValue);
+            if (countValue <= 0) {
+                throw new Error("Количество должно быть целым положительным числом!")
+            }
+        }
+
         function showStorageItems(url) {
             $.ajax(url, {
                 "method": "GET",
@@ -75,10 +95,14 @@
                     $("tr:not(:first-child)", $contentTable).remove()
                     let $tableRow = null;
                     for (let storageItem of storageItems) {
+                        formatDates(storageItem);
                         $tableRow = $("<tr>");
                         $tableRow.append($("<td>").text(storageItem.product));
                         $tableRow.append($("<td>").text(storageItem.product_title));
                         $tableRow.append($("<td>").text(storageItem.count));
+                        $tableRow.append($("<td>").text(storageItem.dt_created));
+                        $tableRow.append($("<td>").text(storageItem.dt_updated));
+                        $tableRow.append($("<td>").text(storageItem.to_remove ? "X" : "-"));
                         $tableRow.data("storageItem", storageItem);
                         $contentTable.append($tableRow);
                     }
@@ -119,9 +143,48 @@
 
             showModal($("#si-editor"));
             $("#product-number").text(selectedStorageItem.product);
+            $("#product-dt-created").text(selectedStorageItem.dt_created);
+            $("#product-dt-updated").text(selectedStorageItem.dt_updated);
             $("#product-title").text(selectedStorageItem.product_title);
             $("#product-count").val(selectedStorageItem.count);
-            //TODO Вставить код редактирования StorageItem
+
+            $("#si-save-button").off().click(() => {
+                //Проверяем корректность данных, введенных в форму
+                try {
+                    checkStorageItemFormData();
+                } catch (error) {
+                    alert(error.message);
+                    return;
+                }
+
+                //TODO Вставить код отправки измененных данных на сервер
+                let urlForRequest = `${apiURL}${selectedStorageItem.id}/`;
+                $.ajax(urlForRequest, {
+                    "method": "PATCH",
+                    "dataType": "json",
+                    "data": {
+                        "count": $("#product-count").val(),
+                        "to_remove": $("#product-to-remove:checked").val() ? true : false
+                    },
+                    "success": function (data) {
+                        formatDates(data);
+
+                        $row.empty();
+                        $row.append($("<td>").text(data.product));
+                        $row.append($("<td>").text(data.product_title));
+                        $row.append($("<td>").text(data.count));
+                        $row.append($("<td>").text(data.dt_created));
+                        $row.append($("<td>").text(data.dt_updated));
+                        $row.append($("<td>").text(data.to_remove ? "X" : "-"));
+                        $row.data("storageItem", data);
+
+                        closeModal($("#si-editor"));
+                    },
+                    "error": function (jqXHR) {
+                        showAjaxError(jqXHR, $("#si-editor"));
+                    }
+                })
+            });
         }
 
         let storageItemsSearch = getSearchFunction(showStorageItems, $("#search-si-field"), apiURL);
