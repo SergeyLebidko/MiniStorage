@@ -153,6 +153,8 @@
             $("#product-dt-updated").text(selectedStorageItem.dt_updated);
             $("#product-title").text(selectedStorageItem.product_title);
             $("#product-count").val(selectedStorageItem.count);
+            $("#product-to-remove").prop("disabled", false);
+            $("#product-to-remove").prop("checked", selectedStorageItem.to_remove);
 
             $("#si-save-button").off().click(() => {
                 //Проверяем корректность данных, введенных в форму

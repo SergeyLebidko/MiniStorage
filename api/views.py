@@ -29,7 +29,7 @@ class RegisteredViewSet(viewsets.ModelViewSet):
             queryset = queryset.order_by(order)
         return queryset
 
-    def register_create(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         result = viewsets.ModelViewSet.create(self, request, *args, **kwargs)
         pk = result.data['id']
         created_element = self.model.objects.filter(pk=pk).first()
@@ -39,7 +39,7 @@ class RegisteredViewSet(viewsets.ModelViewSet):
             Operation.objects.create(username=username, operation=operation)
         return result
 
-    def register_update(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
         pk = kwargs['pk']
         updated_element = self.model.objects.filter(pk=pk).first()
         result = viewsets.ModelViewSet.update(self, request, *args, **kwargs)
@@ -75,12 +75,6 @@ class ProductViewSet(RegisteredViewSet):
     model = Product
     model_verbose_name = 'Товар'
 
-    def create(self, request, *args, **kwargs):
-        return RegisteredViewSet.register_create(self, request, *args, **kwargs)
-
-    def update(self, request, *args, **kwargs):
-        return RegisteredViewSet.register_update(self, request, *args, **kwargs)
-
 
 class ContractorViewSet(RegisteredViewSet):
     serializer_class = ContractorSerializer
@@ -92,12 +86,6 @@ class ContractorViewSet(RegisteredViewSet):
 
     model = Contractor
     model_verbose_name = 'Контрагент'
-
-    def create(self, request, *args, **kwargs):
-        return RegisteredViewSet.register_create(self, request, *args, **kwargs)
-
-    def update(self, request, *args, **kwargs):
-        return RegisteredViewSet.register_update(self, request, *args, **kwargs)
 
 
 @api_view(['GET'])
@@ -118,13 +106,16 @@ class OperationViesSet(viewsets.ModelViewSet):
     queryset = Operation.objects.all()
 
 
-class StorageItemViewSet(viewsets.ModelViewSet):
+class StorageItemViewSet(RegisteredViewSet):
     serializer_class = StorageItemSerializer
     pagination_class = CustomPagination
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     filter_backends = [SearchFilter]
     search_fields = ['product__id', 'product__title']
+
+    model = StorageItem
+    model_verbose_name = 'Товар на складе'
 
     def get_queryset(self):
         queryset = StorageItem.objects.all()
