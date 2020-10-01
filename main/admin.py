@@ -27,4 +27,5 @@ class OperationAdmin(admin.ModelAdmin):
 
 @admin.register(StorageItem)
 class StorageItemAdmin(admin.ModelAdmin):
-    list_display = ['id', 'product', 'count']
+    list_display = ['id', 'product', 'count', 'dt_created', 'dt_updated', 'to_remove']
+    list_display_links = ['product']

@@ -133,8 +133,8 @@ class StorageItemViewSet(viewsets.ModelViewSet):
             prefix = '-' if order.startswith('-') else ''
             if order.endswith('product'):
                 queryset = queryset.order_by(f'{prefix}product_id')
-            if order.endswith('product_title'):
+            elif order.endswith('product_title'):
                 queryset = queryset.order_by(f'{prefix}product__title')
-            if order.endswith('count'):
-                queryset = queryset.order_by(f'{prefix}count')
+            else:
+                queryset = queryset.order_by(order)
         return queryset
