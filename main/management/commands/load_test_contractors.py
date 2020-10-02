@@ -16,17 +16,21 @@ test_data = [
 ]
 
 
+def action():
+    Contractor.objects.all().delete()
+    data = []
+    for title, category in test_data:
+        data.append(Contractor(title=title, category=category))
+
+    Contractor.objects.bulk_create(data)
+    Operation.objects.create(
+        username='- Администратор системы -',
+        operation=f'Командой load_test_contractors создано {len(test_data)} записей о контрагентах'
+    )
+
+
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        Contractor.objects.all().delete()
-        data = []
-        for title, category in test_data:
-            data.append(Contractor(title=title, category=category))
-
-        Contractor.objects.bulk_create(data)
-        Operation.objects.create(
-            username='- Администратор системы -',
-            operation=f'Командой load_test_contractors создано {len(test_data)} записей о контрагентах'
-        )
+        action()
         print(f'Создано записей: {len(test_data)}')
