@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from main.models import Product, Contractor, StorageItem, Operation
+from main.models import Product, Contractor, StorageItem, Document, Operation
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -29,4 +29,15 @@ class StorageItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StorageItem
-        fields = ['id', 'product', 'product', 'count', 'dt_created', 'dt_updated', 'to_remove']
+        fields = '__all__'
+
+
+class DocumentSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        result = serializers.ModelSerializer.to_representation(self, instance)
+        result['contractor_title'] = instance.contractor.title
+        return result
+
+    class Meta:
+        model = Document
+        fields = '__all__'

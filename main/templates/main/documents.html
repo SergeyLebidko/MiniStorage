@@ -4,7 +4,21 @@
 {% block content %}
     <div class="basic-div content-div"><strong>Документы</strong></div>
     <div class="basic-div content-div" id="content-div">
-        Здесь будет контент страницы
+        <table id="content-table" class="content-table">
+            <tr>
+                <th column-key="id" display-name="Номер">Номер</th>
+                <th column-key="dt_created" display-name="Дата создания">Дата создания</th>
+                <th column-key="dt_updated" display-name="Дата изменения">Дата изменения</th>
+                <th column-key="contractor_title" display-name="Контрагент">Контрагент</th>
+                <th column-key="destination_type" display-name="Тип">Тип</th>
+                <th column-key="apply_flag" display-name="Проведен">Проведен</th>
+                <th column-key="to_remove" display-name="Удл.">Удл.</th>
+            </tr>
+        </table>
+        <div class="navigation-div">
+            <span class="span-button" id="prev-page-button">Предыдущая страница</span>
+            <span class="span-button" id="next-page-button">Следующая страница</span>
+        </div>
     </div>
 {% endblock %}
 

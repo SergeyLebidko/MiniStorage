@@ -6,8 +6,9 @@ from rest_framework.response import Response
 from django.db.models.query_utils import DeferredAttribute
 
 from utils import get_username_for_operation
-from main.models import Product, Contractor, StorageItem, Operation
-from .serializers import ProductSerializer, ContractorSerializer, StorageItemSerializer, OperationSerializer
+from main.models import Product, Contractor, StorageItem, Document, Operation
+from .serializers import ProductSerializer, ContractorSerializer, StorageItemSerializer, OperationSerializer, \
+    DocumentSerializer
 from .pagination import CustomPagination
 from .authentication import TokenAuthentication
 
@@ -129,3 +130,13 @@ class StorageItemViewSet(RegisteredViewSet):
             else:
                 queryset = queryset.order_by(order)
         return queryset
+
+
+class DocumentViewSet(viewsets.ModelViewSet):
+    serializer_class = DocumentSerializer
+    pagination_class = CustomPagination
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Document.objects.all()
