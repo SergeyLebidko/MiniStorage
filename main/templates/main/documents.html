@@ -3,7 +3,14 @@
 
 {% block content %}
     <div class="basic-div content-div"><strong>Документы</strong></div>
+
     <div class="basic-div content-div" id="content-div">
+
+        <div class="operation-div">
+            <span class="span-button">Показать фильтры</span>
+            <span class="span-button">Создать документ</span>
+        </div>
+
         <table id="content-table" class="content-table">
             <tr>
                 <th column-key="id" display-name="Номер">Номер</th>
@@ -27,6 +34,55 @@
 
 {% block scripts %}
     <script>
+        const apiURL = "/api/documents/";
+        const apiDocumentDestinations = "/api/document_destinations/";
 
+        let documentDestinations = null;
+
+        function showDocuments(url) {
+            if (!documentDestinations) {
+                $.ajax(apiDocumentDestinations, {
+                    "method": "GET",
+                    "dataType": "json",
+                    "async": false,
+                    "success": function (data) {
+                        documentDestinations = data;
+                    }
+                })
+            }
+            $.ajax(url, {
+                "method": "GET",
+                "dataType": "json",
+                "success": function (data) {
+                    let documents = data.results;
+                    let nextPage = data.next;
+                    let prevPage = data.previous;
+
+                    let $contentTable = $("#content-table");
+                    $("tr:not(:first-child)", $contentTable).remove();
+                    let $tableRow = null;
+                    for (let document of documents) {
+                        formatDates(document);
+                        $tableRow = $("<tr>");
+                        $tableRow.append($("<td>").text(document.id));
+                        $tableRow.append($("<td>").text(document.dt_created));
+                        $tableRow.append($("<td>").text(document.dt_updated));
+                        $tableRow.append($("<td>").text(document.contractor_title));
+                        $tableRow.append($("<td>").text(documentDestinations[document.destination_type]));
+                        $tableRow.append($("<td>").text(document.apply_flag ? "X" : "-"));
+                        $tableRow.append($("<td>").text(document.to_remove ? "X" : "-"));
+                        $tableRow.data("document", document);
+                        $contentTable.append($tableRow);
+                    }
+
+                    createPaginationButtons(prevPage, nextPage, showDocuments);
+                },
+                "error": function (jqXHR) {
+                    showAjaxError(jqXHR);
+                }
+            });
+        }
+
+        showDocuments(apiURL);
     </script>
 {% endblock %}

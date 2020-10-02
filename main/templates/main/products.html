@@ -103,27 +103,7 @@
                     }
                     $contentTable.on("click", "tr:not(:first-child)", productEdit);
 
-                    let $prevPageButton = $("#prev-page-button");
-                    if (prevPage) {
-                        $prevPageButton.show();
-                        $prevPageButton.off();
-                        $prevPageButton.click(() => {
-                            showProducts(prevPage);
-                        })
-                    } else {
-                        $prevPageButton.hide();
-                    }
-
-                    let $nextPageButton = $("#next-page-button");
-                    if (nextPage) {
-                        $nextPageButton.show();
-                        $nextPageButton.off();
-                        $nextPageButton.click(() => {
-                            showProducts(nextPage);
-                        })
-                    } else {
-                        $nextPageButton.hide();
-                    }
+                    createPaginationButtons(prevPage, nextPage, showProducts);
                 },
                 "error": function (jqXHR) {
                     showAjaxError(jqXHR, $("#product-editor"));

@@ -93,8 +93,7 @@ class ContractorViewSet(RegisteredViewSet):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def contractor_categories(request):
-    data = {machine_name: human_name for machine_name, human_name in Contractor.CONTRACTOR_CATEGORY}
-    return Response(data)
+    return Response(dict(Contractor.CONTRACTOR_CATEGORY))
 
 
 class OperationViesSet(viewsets.ModelViewSet):
@@ -140,3 +139,10 @@ class DocumentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Document.objects.all()
+
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def document_destinations(request):
+    return Response(dict(Document.DESTINATION_TYPES))

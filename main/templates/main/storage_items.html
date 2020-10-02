@@ -114,30 +114,10 @@
                     }
                     $contentTable.on("click", "tr:not(:first-child)", storageItemEdit);
 
-                    let $prevPageButton = $("#prev-page-button");
-                    if (prevPage) {
-                        $prevPageButton.show();
-                        $prevPageButton.off();
-                        $prevPageButton.click(() => {
-                            showStorageItems(prevPage);
-                        })
-                    } else {
-                        $prevPageButton.hide();
-                    }
-
-                    let $nextPageButton = $("#next-page-button");
-                    if (nextPage) {
-                        $nextPageButton.show();
-                        $nextPageButton.off();
-                        $nextPageButton.click(() => {
-                            showStorageItems(nextPage);
-                        })
-                    } else {
-                        $nextPageButton.hide();
-                    }
+                    createPaginationButtons(prevPage, nextPage, showStorageItems);
                 },
                 "error": function (jqXHR) {
-                    showAjaxError(jqXHR, $("#contractor-editor"));
+                    showAjaxError(jqXHR);
                 }
             })
         }

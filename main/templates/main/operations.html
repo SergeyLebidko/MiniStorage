@@ -49,27 +49,7 @@
                         $contentTable.append($tableRow);
                     }
 
-                    let $prevPageButton = $("#prev-page-button");
-                    if (prevPage) {
-                        $prevPageButton.show();
-                        $prevPageButton.off();
-                        $prevPageButton.click(() => {
-                            showOperations(prevPage);
-                        })
-                    } else {
-                        $prevPageButton.hide();
-                    }
-
-                    let $nextPageButton = $("#next-page-button");
-                    if (nextPage) {
-                        $nextPageButton.show();
-                        $nextPageButton.off();
-                        $nextPageButton.click(() => {
-                            showOperations(nextPage);
-                        })
-                    } else {
-                        $nextPageButton.hide();
-                    }
+                    createPaginationButtons(prevPage, nextPage, showOperations);
                 },
                 "error": function (jqXHR) {
                     showAjaxError(jqXHR, $("#contractor-editor"));
@@ -79,7 +59,7 @@
 
         let operationSearch = getSearchFunction(showOperations, $("#search-field"), apiURL);
 
-         $("#clear-search-field-button").click(() => {
+        $("#clear-search-field-button").click(() => {
             $("#search-field").val("");
             operationSearch();
         });

@@ -109,27 +109,7 @@
                     }
                     $contentTable.on("click", "tr:not(:first-child)", contractorEdit);
 
-                    let $prevPageButton = $("#prev-page-button");
-                    if (prevPage) {
-                        $prevPageButton.show();
-                        $prevPageButton.off();
-                        $prevPageButton.click(() => {
-                            showContractors(prevPage);
-                        })
-                    } else {
-                        $prevPageButton.hide();
-                    }
-
-                    let $nextPageButton = $("#next-page-button");
-                    if (nextPage) {
-                        $nextPageButton.show();
-                        $nextPageButton.off();
-                        $nextPageButton.click(() => {
-                            showContractors(nextPage);
-                        })
-                    } else {
-                        $nextPageButton.hide();
-                    }
+                    createPaginationButtons(prevPage, nextPage, showContractors);
                 },
                 "error": function (jqXHR) {
                     showAjaxError(jqXHR, $("#contractor-editor"));

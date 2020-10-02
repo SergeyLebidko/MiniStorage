@@ -33,6 +33,32 @@ function showAjaxError(jqXHR, $modal = null) {
     showMessage(errorText);
 }
 
+//Создание обработчика для кнопок перехода на следующую и предыдущую страницы
+
+function createPaginationButtons(prevPage, nextPage, showFunc) {
+    let $prevPageButton = $("#prev-page-button");
+    if (prevPage) {
+        $prevPageButton.show();
+        $prevPageButton.off();
+        $prevPageButton.click(() => {
+            showFunc(prevPage);
+        })
+    } else {
+        $prevPageButton.hide();
+    }
+
+    let $nextPageButton = $("#next-page-button");
+    if (nextPage) {
+        $nextPageButton.show();
+        $nextPageButton.off();
+        $nextPageButton.click(() => {
+            showFunc(nextPage);
+        })
+    } else {
+        $nextPageButton.hide();
+    }
+}
+
 //Закрытие открытие модальных окон с блокировкой/разблокированием скролла страницы
 
 function showModal($modal) {
