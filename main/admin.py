@@ -39,5 +39,5 @@ class DocumentAdmin(admin.ModelAdmin):
 
 @admin.register(DocumentItem)
 class DocumentItemAdmin(admin.ModelAdmin):
-    list_display = ['product', 'count']
+    list_display = ['document', 'product', 'count']
     list_display_links = ['product']

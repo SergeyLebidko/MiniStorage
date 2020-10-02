@@ -61,7 +61,7 @@ function formatDates(obj) {
     return obj;
 }
 
-// Функции поиска объектов по заданной строке и сортировки списков объектов
+// Функции для реализации поиска
 
 function getSearchFunction(showFunc, $searchField, baseURL) {
     function search() {
@@ -120,7 +120,7 @@ function getSortFunction(showFunc, $searchField, baseURL) {
     return sort;
 }
 
-//Функции запроса списка объектов для добавления в элемент и скролла элемента с запросом новых данных
+//Функции для реализации поиска с выводом результатов в предназначенный для этого div
 
 function getDownloadListFunction($resultDiv) {
     function downloadList(url) {
