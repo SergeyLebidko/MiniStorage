@@ -42,6 +42,11 @@ def contractors(request):
 
 
 @login_required(login_url='login')
+def documents(request):
+    return render(request, 'main/documents.html', context={})
+
+
+@login_required(login_url='login')
 def operations(request):
     return render(request, 'main/operations.html', context={})
 

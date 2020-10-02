@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, Contractor, Operation, StorageItem, Token
+from .models import Product, Contractor, Operation, StorageItem, Document, DocumentItem, Token
 
 
 @admin.register(Token)
@@ -28,4 +28,16 @@ class OperationAdmin(admin.ModelAdmin):
 @admin.register(StorageItem)
 class StorageItemAdmin(admin.ModelAdmin):
     list_display = ['id', 'product', 'count', 'dt_created', 'dt_updated', 'to_remove']
+    list_display_links = ['product']
+
+
+@admin.register(Document)
+class DocumentAdmin(admin.ModelAdmin):
+    list_display = ['id', 'destination_type', 'apply_flag', 'contractor', 'dt_created', 'dt_updated', 'to_remove']
+    list_display_links = ['destination_type', 'contractor']
+
+
+@admin.register(DocumentItem)
+class DocumentItemAdmin(admin.ModelAdmin):
+    list_display = ['product', 'count']
     list_display_links = ['product']
