@@ -57,7 +57,7 @@
             })
         }
 
-        let operationSearch = getSearchFunction(showOperations, $("#search-field"), apiURL);
+        let operationSearch = getSearchFunction(showOperations, getDefaultSearchParams, apiURL);
 
         $("#clear-search-field-button").click(() => {
             $("#search-field").val("");

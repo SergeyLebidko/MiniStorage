@@ -5,6 +5,12 @@ input[type=text], input[type=password] {
     border-radius: 4px;
 }
 
+input[type=date] {
+    padding: 6px 10px;
+    border: 1px solid RGB(205, 205, 205);
+    border-radius: 4px;
+}
+
 .operation-div > input[type=text] {
     width: 200px;
 }
@@ -12,6 +18,12 @@ input[type=text], input[type=password] {
 textarea {
     width: 90%;
     height: 150px;
+    padding: 6px 10px;
+    border: 1px solid RGB(205, 205, 205);
+    border-radius: 4px;
+}
+
+select {
     padding: 6px 10px;
     border: 1px solid RGB(205, 205, 205);
     border-radius: 4px;

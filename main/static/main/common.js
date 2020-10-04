@@ -87,15 +87,20 @@ function formatDates(obj) {
     return obj;
 }
 
-// Функции для реализации поиска
+// Функции для реализации сортировки и поиска
 
-function getSearchFunction(showFunc, $searchField, baseURL) {
+function getDefaultSearchParams() {
+    let searchText = $("#search-field").val();
+    return searchText ? `search=${searchText}` : "";
+}
+
+function getSearchFunction(showFunc, getSearchParams, baseURL) {
     function search() {
         //Формируем url для поискового запроса
         let urlForSearch;
-        let searchString = $searchField.val();
-        if (searchString) {
-            urlForSearch = `${baseURL}?search=${searchString}`;
+        let searchParams = getSearchParams();
+        if (searchParams) {
+            urlForSearch = `${baseURL}?${searchParams}`;
         } else {
             urlForSearch = baseURL;
         }
@@ -112,7 +117,7 @@ function getSearchFunction(showFunc, $searchField, baseURL) {
     return search;
 }
 
-function getSortFunction(showFunc, $searchField, baseURL) {
+function getSortFunction(showFunc, getSearchParams, baseURL) {
     function sort() {
         let $this = $(this);
 
@@ -137,8 +142,10 @@ function getSortFunction(showFunc, $searchField, baseURL) {
         let urlForRequest = baseURL + "?";
         urlForRequest += "order=" + (orderColumn.order === "+" ? "" : "-") + $this.attr("column-key");
 
-        let searchText = $searchField.val();
-        urlForRequest += searchText ? "&search=" + searchText : "";
+        let searchParams = getSearchParams();
+        urlForRequest += searchParams ? `&${searchParams}` : "";
+
+        console.log(urlForRequest);
 
         showFunc(urlForRequest);
     }
@@ -154,15 +161,15 @@ function getDownloadListFunction($resultDiv) {
             "method": "GET",
             "dataType": "json",
             "success": function (data) {
-                let products = data.results;
+                let elements = data.results;
                 let nextPage = data.next;
                 $resultDiv.data("nextPage", nextPage);
-                if (products.length === 0) {
+                if (elements.length === 0) {
                     $resultDiv.append($("<span>").text("Ничего не найдено..."));
                     return;
                 }
-                for (let product of products) {
-                    $resultDiv.append($("<p>").text(product.title).data("element", product));
+                for (let element of elements) {
+                    $resultDiv.append($("<p>").text(element.title).data("element", element));
                 }
             },
             "error": function (jqXHR) {

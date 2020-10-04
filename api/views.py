@@ -121,10 +121,8 @@ class StorageItemViewSet(RegisteredViewSet):
         queryset = StorageItem.objects.all()
         order = self.request.query_params.get('order')
         if order:
-            prefix = '-' if order.startswith('-') else ''
-            if order.endswith('product'):
-                queryset = queryset.order_by(f'{prefix}product_id')
-            elif order.endswith('product_title'):
+            if order.endswith('product_title'):
+                prefix = '-' if order.startswith('-') else ''
                 queryset = queryset.order_by(f'{prefix}product__title')
             else:
                 queryset = queryset.order_by(order)
@@ -138,7 +136,38 @@ class DocumentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Document.objects.all()
+        queryset = Document.objects.all()
+
+        # Обрабатываем параметры сортировки
+        order = self.request.query_params.get('order')
+        if order:
+            if order.endswith('contractor_title'):
+                prefix = '-' if order.startswith('-') else ''
+                queryset = queryset.order_by(f'{prefix}contractor__title')
+            else:
+                queryset = queryset.order_by(order)
+
+        # Обрабатываем параметры поиска
+        number = self.request.query_params.get('number')
+        if number:
+            queryset = queryset.filter(pk__contains=number)
+        dt_start = self.request.query_params.get('dt_start')
+        if dt_start:
+            queryset = queryset.filter(dt_created__gte=dt_start)
+        dt_end = self.request.query_params.get('dt_end')
+        if dt_end:
+            queryset = queryset.filter(dt_created__lte=dt_end)
+        contractor = self.request.query_params.get('contractor')
+        if contractor:
+            queryset = queryset.filter(contractor=contractor)
+        destination_type = self.request.query_params.get('destination_type')
+        if destination_type:
+            queryset = queryset.filter(destination_type=destination_type)
+        apply_flag = self.request.query_params.get('apply_flag')
+        if apply_flag:
+            queryset = queryset.filter(apply_flag=apply_flag)
+
+        return queryset
 
 
 @api_view(['GET'])

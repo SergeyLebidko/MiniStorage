@@ -175,9 +175,14 @@
             });
         }
 
-        let storageItemsSearch = getSearchFunction(showStorageItems, $("#search-si-field"), apiURL);
+        let getSearchParams = function () {
+            let searchText = $("#search-si-field").val();
+            return searchText ? `search=${searchText}` : "";
+        }
 
-        let storageItemSort = getSortFunction(showStorageItems, $("#search-si-field"), apiURL);
+        let storageItemsSearch = getSearchFunction(showStorageItems, getSearchParams, apiURL);
+
+        let storageItemSort = getSortFunction(showStorageItems, getSearchParams, apiURL);
 
         let downloadProductsList = getDownloadListFunction($("#search-p-result-div"));
 

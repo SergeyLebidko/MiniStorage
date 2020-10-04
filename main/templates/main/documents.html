@@ -5,10 +5,35 @@
     <div class="basic-div content-div"><strong>Документы</strong></div>
 
     <div class="basic-div content-div" id="content-div">
-
         <div class="operation-div">
-            <span class="span-button">Показать фильтры</span>
-            <span class="span-button">Создать документ</span>
+            <span class="span-button" id="show-filters-button">Показать фильтры</span>
+            <span class="span-button" id="create-receipt-document-button">Создать приходный документ</span>
+            <span class="span-button" id="create-expense-document-button">Создать расходный документ</span>
+        </div>
+
+        <div class="operation-div" id="filters-div" style="display: none; padding: 10px">
+            Номер: <input type="text" name="number-search-field" id="number-search-field" value=""><br><br>
+            Дата создания. От: <input type="date" name="start-dt-create-search-field"
+                                      id="start-dt-create-search-field">
+            До: <input type="date" name="end-dt-create-search-field" id="end-dt-create-search-field"><br><br>
+            Контрагент:
+            <select name="contractors-search-list" id="contractors-search-list">
+                <option value="">- не выбран -</option>
+            </select><br><br>
+            Тип документа:
+            <select name="document-types-search-list" id="document-types-search-list">
+                <option value="">- не выбран -</option>
+            </select><br><br>
+            Документ проведен:
+            <select name="apply-flag-search-list" id="apply-flag-search-list">
+                <option value="">- не выбран -</option>
+                <option value="true">Да</option>
+                <option value="false">Нет</option>
+            </select>
+            <br><br>
+
+            <span class="span-button" id="search-documents-button" style="margin-left: 0px">Найти документы</span>
+            <span class="span-button" id="clear-search-params">Очистить фильтры</span>
         </div>
 
         <table id="content-table" class="content-table">
@@ -36,20 +61,11 @@
     <script>
         const apiURL = "/api/documents/";
         const apiDocumentDestinations = "/api/document_destinations/";
+        const apiContractors = "/api/contractors/";
 
         let documentDestinations = null;
 
         function showDocuments(url) {
-            if (!documentDestinations) {
-                $.ajax(apiDocumentDestinations, {
-                    "method": "GET",
-                    "dataType": "json",
-                    "async": false,
-                    "success": function (data) {
-                        documentDestinations = data;
-                    }
-                })
-            }
             $.ajax(url, {
                 "method": "GET",
                 "dataType": "json",
@@ -83,6 +99,103 @@
             });
         }
 
+        function downloadDocumentDestinations() {
+            $.ajax(apiDocumentDestinations, {
+                "method": "GET",
+                "dataType": "json",
+                "async": false,
+                "success": function (data) {
+                    documentDestinations = data;
+                    let documentTypesSearchList = $("#document-types-search-list");
+                    for (let [key, value] of Object.entries(documentDestinations)) {
+                        documentTypesSearchList.append($("<option>", {"value": key}).text(value));
+                    }
+                },
+                "error": function (jqXHR) {
+                    showAjaxError(jqXHR);
+                }
+            })
+        }
+
+        function downloadContractors() {
+            $.ajax(`${apiContractors}?no_page`, {
+                "method": "GET",
+                "dataType": "json",
+                "async": false,
+                "success": function (data) {
+                    let $contractorsSearchList = $("#contractors-search-list");
+                    for (let contractor of data) {
+                        $contractorsSearchList.append($("<option>", {"value": contractor.id}).text(contractor.title));
+                    }
+                },
+                "error": function (jqXHR) {
+                    showAjaxError(jqXHR);
+                }
+            })
+        }
+
+        function clearFilters() {
+            $("#number-search-field").val("");
+            $("#start-dt-create-search-field, #end-dt-create-search-field").val("");
+            $("#contractors-search-list").val("");
+            $("#document-types-search-list").val("");
+            $("#apply-flag-search-list").val("");
+        }
+
+        let getSearchParams = function () {
+            let searchParams = {};
+            let number = $("#number-search-field").val();
+            if (number) {
+                searchParams["number"] = number;
+            }
+            let startDtCreated = $("#start-dt-create-search-field").val();
+            if (startDtCreated) {
+                searchParams["dt_start"] = startDtCreated;
+            }
+            let endDtCreated = $("#end-dt-create-search-field").val();
+            if (endDtCreated) {
+                searchParams["dt_end"] = endDtCreated;
+            }
+            let contractor = $("#contractors-search-list").val();
+            if (contractor) {
+                searchParams["contractor"] = contractor;
+            }
+            let destinationType = $("#document-types-search-list").val();
+            if (destinationType) {
+                searchParams["destination_type"] = destinationType;
+            }
+            let applyFlagOption = $("#apply-flag-search-list").val();
+            if (applyFlagOption) {
+                searchParams["apply_flag"] = applyFlagOption;
+            }
+
+            return $.param(searchParams);
+        }
+
+        let documentSort = getSortFunction(showDocuments, getSearchParams, apiURL);
+
+        let documentSearch = getSearchFunction(showDocuments, getSearchParams, apiURL);
+
+        $("#show-filters-button").click(() => {
+            let $filtersDiv = $("#filters-div");
+            if ($filtersDiv.css("display") === "block") {
+                clearFilters();
+            }
+            $("#create-receipt-document-button, #create-expense-document-button").toggle();
+            $filtersDiv.toggle("normal");
+            let $showFiltersButton = $("#show-filters-button");
+            let buttonText = $showFiltersButton.text();
+            $showFiltersButton.text(buttonText === "Показать фильтры" ? "Скрыть фильры" : "Показать фильтры");
+        });
+        $("#search-documents-button").click(documentSearch);
+        $("#clear-search-params").click(() => {
+            clearFilters();
+            showDocuments(apiURL);
+        });
+        $("#content-table th").click(documentSort);
+
+        downloadDocumentDestinations();
+        downloadContractors();
         showDocuments(apiURL);
     </script>
 {% endblock %}
