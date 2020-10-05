@@ -39,7 +39,7 @@
 {% block modals %}
     <div class="modal" id="si-editor" style="display: none">
         <div>
-            <div>
+            <div class="modal-control-buttons">
                 <span class="span-button" id="si-close-button">X</span>
             </div>
             <div>
@@ -53,7 +53,7 @@
                 </fieldset>
             </div>
             <br>
-            <div>
+            <div class="modal-control-buttons">
                 <span class="span-button" id="si-cancel-button">Отмена</span>
                 <span class="span-button" id="si-save-button">Сохранить</span>
             </div>
@@ -225,8 +225,11 @@
             $("#search-p-result-div").slideUp("normal");
         });
         $("#search-p-result-div").click((event) => {
-            $("#search-p-result-div").slideUp();
             let product = $(event.target).data("element")
+            if (!product) {
+                return;
+            }
+            $("#search-p-result-div").slideUp();
 
             $.ajax(apiURL, {
                 "method": "POST",

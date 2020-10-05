@@ -39,3 +39,11 @@ input[type=submit]:hover, input[type=submit]:focus {
 .anchor-button:hover {
     background: RGB(80, 75, 200);
 }
+
+.td-button {
+    text-align: center;
+}
+
+.td-button:hover {
+    background: RGB(220, 100, 100);
+}

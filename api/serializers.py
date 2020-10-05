@@ -44,7 +44,12 @@ class DocumentSerializer(serializers.ModelSerializer):
 
 
 class DocumentItemSerializer(serializers.ModelSerializer):
+
+    def to_representation(self, instance):
+        result = serializers.ModelSerializer.to_representation(self, instance)
+        result['product_title'] = instance.product.title
+        return result
+
     class Meta:
         model = DocumentItem
         fields = '__all__'
-

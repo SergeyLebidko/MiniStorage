@@ -18,7 +18,7 @@
     margin: 200px auto;
 }
 
-.modal > div > div:first-child, .modal > div > div:last-child {
+.modal-control-buttons {
     display: flex;
     justify-content: flex-end
 }
