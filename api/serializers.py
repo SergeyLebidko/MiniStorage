@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from main.models import Product, Contractor, StorageItem, Document, Operation
+from main.models import Product, Contractor, StorageItem, Document, DocumentItem, Operation
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -41,3 +41,10 @@ class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
         fields = '__all__'
+
+
+class DocumentItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DocumentItem
+        fields = '__all__'
+

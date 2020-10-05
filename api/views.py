@@ -6,9 +6,9 @@ from rest_framework.response import Response
 from django.db.models.query_utils import DeferredAttribute
 
 from utils import get_username_for_operation
-from main.models import Product, Contractor, StorageItem, Document, Operation
+from main.models import Product, Contractor, StorageItem, Document, DocumentItem, Operation
 from .serializers import ProductSerializer, ContractorSerializer, StorageItemSerializer, OperationSerializer, \
-    DocumentSerializer
+    DocumentSerializer, DocumentItemSerializer
 from .pagination import CustomPagination
 from .authentication import TokenAuthentication
 
@@ -150,7 +150,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
         # Обрабатываем параметры поиска
         number = self.request.query_params.get('number')
         if number:
-            queryset = queryset.filter(pk__contains=number)
+            queryset = queryset.filter(pk=number)
         dt_start = self.request.query_params.get('dt_start')
         if dt_start:
             queryset = queryset.filter(dt_created__gte=dt_start)
@@ -170,8 +170,14 @@ class DocumentViewSet(viewsets.ModelViewSet):
         return queryset
 
 
-@api_view(['GET'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def document_destinations(request):
-    return Response(dict(Document.DESTINATION_TYPES))
+class DocumentItemViewSet(viewsets.ModelViewSet):
+    serializer_class = DocumentItemSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = DocumentItem.objects.all()
+        document = self.request.query_params.get('document')
+        if document:
+            queryset = queryset.filter(document=document)
+        return queryset

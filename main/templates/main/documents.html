@@ -5,7 +5,7 @@
     <div class="basic-div content-div"><strong>Документы</strong></div>
 
     <div class="basic-div content-div" id="content-div">
-        <div class="operation-div">
+        <div class="operation-div" id="control-buttons">
             <span class="span-button" id="show-filters-button">Показать фильтры</span>
             <span class="span-button" id="create-receipt-document-button">Создать приходный документ</span>
             <span class="span-button" id="create-expense-document-button">Создать расходный документ</span>
@@ -36,6 +36,18 @@
             <span class="span-button" id="clear-search-params">Очистить фильтры</span>
         </div>
 
+        <div class="operation-div" id="create-receipt-div" style="display: none">
+            <p>
+                Тип документа: Приход
+            </p>
+        </div>
+
+        <div class="operation-div" id="create-expense-div" style="display: none">
+            <p>
+                Тип документа: Расход
+            </p>
+        </div>
+
         <table id="content-table" class="content-table">
             <tr>
                 <th column-key="id" display-name="Номер">Номер</th>
@@ -47,7 +59,7 @@
                 <th column-key="to_remove" display-name="Удл.">Удл.</th>
             </tr>
         </table>
-        <div class="navigation-div">
+        <div class="navigation-div" id="navigation-div">
             <span class="span-button" id="prev-page-button">Предыдущая страница</span>
             <span class="span-button" id="next-page-button">Следующая страница</span>
         </div>
@@ -60,10 +72,9 @@
 {% block scripts %}
     <script>
         const apiURL = "/api/documents/";
-        const apiDocumentDestinations = "/api/document_destinations/";
         const apiContractors = "/api/contractors/";
 
-        let documentDestinations = null;
+        let documentDestinations = {receipt: "Приход", expense: "Расход"};
 
         function showDocuments(url) {
             $.ajax(url, {
@@ -97,24 +108,6 @@
                     showAjaxError(jqXHR);
                 }
             });
-        }
-
-        function downloadDocumentDestinations() {
-            $.ajax(apiDocumentDestinations, {
-                "method": "GET",
-                "dataType": "json",
-                "async": false,
-                "success": function (data) {
-                    documentDestinations = data;
-                    let documentTypesSearchList = $("#document-types-search-list");
-                    for (let [key, value] of Object.entries(documentDestinations)) {
-                        documentTypesSearchList.append($("<option>", {"value": key}).text(value));
-                    }
-                },
-                "error": function (jqXHR) {
-                    showAjaxError(jqXHR);
-                }
-            })
         }
 
         function downloadContractors() {
@@ -176,6 +169,21 @@
 
         let documentSearch = getSearchFunction(showDocuments, getSearchParams, apiURL);
 
+        //Обработчик кнопки создания приходного документа
+        $("#create-receipt-document-button").click(() => {
+            let $createDiv = $("#create-receipt-div");
+            $createDiv.show("normal");
+            $("#control-buttons, #content-table, #navigation-div").hide();
+        });
+
+        //Обработчик кнопки создания расходного документа
+        $("#create-expense-document-button").click(() => {
+            let $createDiv = $("#create-expense-div");
+            $createDiv.show("normal");
+            $("#control-buttons, #content-table, #navigation-div").hide();
+        });
+
+        //Обработчк кнопки отображения фильтров
         $("#show-filters-button").click(() => {
             let $filtersDiv = $("#filters-div");
             if ($filtersDiv.css("display") === "block") {
@@ -187,14 +195,19 @@
             let buttonText = $showFiltersButton.text();
             $showFiltersButton.text(buttonText === "Показать фильтры" ? "Скрыть фильры" : "Показать фильтры");
         });
+
+        //Обработчик кнопки применения фильтров
         $("#search-documents-button").click(documentSearch);
+
+        //Обработчик кнопки сброса значений фильтров
         $("#clear-search-params").click(() => {
             clearFilters();
             showDocuments(apiURL);
         });
+
+        //Обработчик клика по заголовкам столбцов таблицы документов
         $("#content-table th").click(documentSort);
 
-        downloadDocumentDestinations();
         downloadContractors();
         showDocuments(apiURL);
     </script>
