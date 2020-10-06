@@ -270,6 +270,8 @@
                 //Этап третий - добавляем строку и связываем с ней данные
                 let $row = $("<tr>");
                 let $firstCell = $("<td>").addClass("td-button").text("Удалить");
+
+                //Обработчик удаления строки
                 $firstCell.click((event) => {
                     let $selectedRow = $(event.target).closest("tr");
                     $selectedRow.remove();
@@ -279,6 +281,8 @@
                 $row.append($("<td>").text(product.title));
                 $row.append($("<td>").text("1"));
                 $row.data("document_item", {"product": product.id, "count": 1})
+
+                //Обработчик редактирования количества
                 $row.on("click", "td:not(:first-child)", (event) => {
                     let $modal = $("#count-editor");
                     let $targetRow = $(event.target).closest("tr")
@@ -287,7 +291,40 @@
                     $("#product-count").val($("td", $targetRow).eq(3).text());
                     showModal($modal);
                 });
+
                 $("#products-table tr:first-child").after($row);
+            });
+
+            //Обработчики для кнопок СОХРАНИТЬ и СОХРАНИТЬ И ПРОВЕСТИ
+            $("#document-modal-save-button, #document-modal-save-and-apply-button").off().click((event) => {
+                let contractor = $("#contractors-list").val();
+                if (!contractor) {
+                    showMessage("Не выбран контрагент!");
+                    return;
+                }
+                let targetButtonId = $(event.target).prop("id");
+
+                //Извлекаем связанные данные
+                let documentData = $("#document-modal").data("document");
+                documentData.contractor = +contractor;
+
+                let documentItemsData = [];
+                let documentItemData;
+                for (let tableRow of $("#products-table tr")) {
+                    documentItemData = $(tableRow).data("document_item");
+                    if (documentItemData) {
+                        documentItemsData.push(documentItemData);
+                    }
+                }
+
+                //TODO Удалить тестовый вывод
+                console.log("Будут отправлены данные");
+                console.log("Документ:");
+                console.log(documentData);
+                console.log("Данные документа:");
+                console.log(documentItemsData);
+
+                //TODO Добавить отправку данных для создания документов
             });
 
             //Удаляем привязанные к форме данные и показываем окно для создания документа
