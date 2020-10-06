@@ -110,7 +110,8 @@
 
 {% block scripts %}
     <script>
-        const apiURL = "/api/documents/";
+        const apiDocumentsURL = "/api/documents/";
+        const apiDocumentItemsURL = "/api/document_items/";
         const apiContractorsURL = "/api/contractors/";
         const apiProductsURL = "/api/products/";
 
@@ -207,9 +208,9 @@
             return $.param(searchParams);
         }
 
-        let documentSort = getSortFunction(showDocuments, getSearchParams, apiURL);
+        let documentSort = getSortFunction(showDocuments, getSearchParams, apiDocumentsURL);
 
-        let documentSearch = getSearchFunction(showDocuments, getSearchParams, apiURL);
+        let documentSearch = getSearchFunction(showDocuments, getSearchParams, apiDocumentsURL);
 
         //Обработчик кнопки создания приходного документа
         $("#create-receipt-document-button").click(() => {
@@ -318,13 +319,35 @@
                 }
 
                 //TODO Удалить тестовый вывод
-                console.log("Будут отправлены данные");
-                console.log("Документ:");
-                console.log(documentData);
-                console.log("Данные документа:");
-                console.log(documentItemsData);
+                {#console.log("Будут отправлены данные");#}
+                {#console.log("Документ:");#}
+                {#console.log(documentData);#}
+                {#console.log("Данные документа:");#}
+                {#console.log(documentItemsData);#}
 
                 //TODO Добавить отправку данных для создания документов
+                $.ajax(apiDocumentsURL, {
+                    "method": "POST",
+                    "dataType": "json",
+                    "data": documentData
+                }).then((data) => {
+                    documentData.id = data.id;
+                    let requests = [];
+                    for (let documentItem of documentItemsData) {
+                        documentItem.document = documentData.id;
+                        requests.push($.ajax(apiDocumentItemsURL, {
+                            "method": "POST",
+                            data: documentItem
+                        }));
+                    }
+                    let deferred = $.Deferred()
+                    $.when(...requests).done(() => {
+                        deferred.resolve("Все объекты созданы")
+                    });
+                    return deferred.promise();
+                }).then((msg) => {
+                    console.log(msg);
+                });
             });
 
             //Удаляем привязанные к форме данные и показываем окно для создания документа
@@ -340,7 +363,7 @@
             $("#control-buttons, #content-table, #navigation-div").show();
         });
 
-        //Обработчк кнопки отображения фильтров
+        //Обработчик кнопки отображения/скрытия фильтров
         $("#show-filters-button").click(() => {
             let $filtersDiv = $("#filters-div");
             if ($filtersDiv.css("display") === "block") {
@@ -359,7 +382,7 @@
         //Обработчик кнопки сброса значений фильтров
         $("#clear-search-params").click(() => {
             clearFilters();
-            showDocuments(apiURL);
+            showDocuments(apiDocumentsURL);
         });
 
         //Обработчик клика по заголовкам столбцов таблицы документов
@@ -386,6 +409,6 @@
         });
 
         downloadContractors();
-        showDocuments(apiURL);
+        showDocuments(apiDocumentsURL);
     </script>
 {% endblock %}
