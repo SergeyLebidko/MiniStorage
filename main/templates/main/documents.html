@@ -88,6 +88,24 @@
 {% endblock %}
 
 {% block modals %}
+    <div class="modal" id="count-editor" style="display: none">
+        <div>
+            <div class="modal-control-buttons">
+                <span class="span-button" id="count-editor-close-button">X</span>
+            </div>
+            <div>
+                Наименование: <span id="product-title"></span><br><br>
+                <fieldset>
+                    Количество: <input type="text" name="product-count" id="product-count" value="" required>
+                </fieldset>
+            </div>
+            <br>
+            <div class="modal-control-buttons">
+                <span class="span-button" id="count-editor-cancel-button">Отмена</span>
+                <span class="span-button" id="count-editor-save-button">Сохранить</span>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block scripts %}
@@ -261,6 +279,14 @@
                 $row.append($("<td>").text(product.title));
                 $row.append($("<td>").text("1"));
                 $row.data("document_item", {"product": product.id, "count": 1})
+                $row.on("click", "td:not(:first-child)", (event) => {
+                    let $modal = $("#count-editor");
+                    let $targetRow = $(event.target).closest("tr")
+                    $modal.data("row", $targetRow);
+                    $("#product-title").text($("td", $targetRow).eq(2).text());
+                    $("#product-count").val($("td", $targetRow).eq(3).text());
+                    showModal($modal);
+                });
                 $("#products-table tr:first-child").after($row);
             });
 
@@ -301,6 +327,26 @@
 
         //Обработчик клика по заголовкам столбцов таблицы документов
         $("#content-table th").click(documentSort);
+
+        //Обработчики событий для модального окна редактирования количества товаров
+        $("#count-editor-save-button").click(() => {
+            try {
+                checkCountValue($("#product-count"));
+            } catch (error) {
+                alert(error.message);
+                return;
+            }
+            let newCount = $("#product-count").val();
+            let $row = $("#count-editor").data("row");
+            let documentItem = $row.data("document_item");
+
+            $("td", $row).eq(3).text(newCount);
+            documentItem.count = +newCount;
+            closeModal($("#count-editor"));
+        });
+        $("#count-editor-cancel-button, #count-editor-close-button").click(() => {
+            closeModal($("#count-editor"));
+        });
 
         downloadContractors();
         showDocuments(apiURL);

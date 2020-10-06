@@ -66,21 +66,6 @@
         const apiURL = "/api/storage_items/";
         const apiProductsURL = "/api/products/";
 
-        function checkStorageItemFormData() {
-            //Проверяем корректность внесения данных
-            let countValue = $("#product-count").val().trim();
-            if (countValue.length === 0) {
-                throw new Error("Количество не может быть пустым!");
-            }
-            if (!/^\d+$/.test(countValue)) {
-                throw new Error("Поле цены заполнено некорректно!");
-            }
-            countValue = new Number(countValue);
-            if (countValue <= 0) {
-                throw new Error("Количество должно быть целым положительным числом!")
-            }
-        }
-
         function showStorageItems(url) {
             $.ajax(url, {
                 "method": "GET",
@@ -139,7 +124,7 @@
             $("#si-save-button").off().click(() => {
                 //Проверяем корректность данных, введенных в форму
                 try {
-                    checkStorageItemFormData();
+                    checkCountValue($("#product-count"));
                 } catch (error) {
                     alert(error.message);
                     return;

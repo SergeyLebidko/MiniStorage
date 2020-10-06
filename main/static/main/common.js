@@ -87,6 +87,23 @@ function formatDates(obj) {
     return obj;
 }
 
+// Проверка корректного указания количества
+
+function checkCountValue($countField) {
+    //Проверяем корректность внесения данных
+    let countValue = $countField.val().trim();
+    if (countValue.length === 0) {
+        throw new Error("Количество не может быть пустым!");
+    }
+    if (!/^\d+$/.test(countValue)) {
+        throw new Error("Поле заполнено некорректно!");
+    }
+    countValue = new Number(countValue);
+    if (countValue <= 0) {
+        throw new Error("Количество должно быть целым положительным числом!")
+    }
+}
+
 // Функции для реализации сортировки и поиска
 
 function getDefaultSearchParams() {
