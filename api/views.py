@@ -3,6 +3,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import status
 from django.db.models.query_utils import DeferredAttribute
 
 from utils import get_username_for_operation
@@ -181,3 +182,32 @@ class DocumentItemViewSet(viewsets.ModelViewSet):
         if document:
             queryset = queryset.filter(document=document)
         return queryset
+
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def apply_document(request, document_id):
+    document = Document.objects.filter(pk=document_id).first()
+    if not document:
+        return Response({'error': f'Документ с номером {document_id} не найден'}, status=status.HTTP_400_BAD_REQUEST)
+    if document.apply_flag:
+        return Response({'error': f'Документ с номером {document_id} уже проведен'}, status=status.HTTP_400_BAD_REQUEST)
+
+    document_items = DocumentItem.objects.filter(document=document)
+    if document.destination_type == Document.RECEIPT:
+        for document_item in document_items:
+            storage_item = StorageItem.objects.filter(product_id=document_item.product_id).first()
+            if storage_item:
+                storage_item.count += document_item.count
+                storage_item.save()
+            else:
+                StorageItem.objects.create(product=document_item.product, count=document_item.count)
+        document.apply_flag = True
+        document.save()
+
+    elif document.destination_type == Document.EXPENSE:
+        # TODO Вставить код проведения расходного документа
+        pass
+
+    return Response(status=status.HTTP_200_OK)

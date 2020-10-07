@@ -112,6 +112,7 @@
     <script>
         const apiDocumentsURL = "/api/documents/";
         const apiDocumentItemsURL = "/api/document_items/";
+        const apiDocumentApplyURL = "/api/apply_document/";
         const apiContractorsURL = "/api/contractors/";
         const apiProductsURL = "/api/products/";
 
@@ -241,14 +242,14 @@
                 $resultDiv.slideDown("normal");
                 downloadProductsList(`${apiProductsURL}?search=${searchString}`);
             });
-            $("#search-product-result-div").off().scroll(scrollProductsList);
+            $("#search-product-result-div").off("scroll").scroll(scrollProductsList);
             $("#product-clear-search-button").off().click(() => {
                 $("#product-search-field").val("");
                 $("#search-product-result-div").slideUp("normal");
             });
 
             //Обработчик добавления товара в таблицу выбранных товаров
-            $("#search-product-result-div").off().click((event) => {
+            $("#search-product-result-div").off("click").click((event) => {
                 //Первый этап - проверяем, что щелчек произошел именно на товаре
                 let product = $(event.target).data("element");
                 if (!product) {
@@ -256,7 +257,7 @@
                 }
                 $("#search-product-result-div").slideUp();
 
-                //Второй этап - проверяем, чтобы в документе не было товаров-дуликатов
+                //Второй этап - проверяем, чтобы в документе не было товаров-дубликатов
                 let rowData;
                 for (let tableRow of $("#products-table tr")) {
                     rowData = $(tableRow).data("document_item");
@@ -318,20 +319,18 @@
                     }
                 }
 
-                //TODO Удалить тестовый вывод
-                {#console.log("Будут отправлены данные");#}
-                {#console.log("Документ:");#}
-                {#console.log(documentData);#}
-                {#console.log("Данные документа:");#}
-                {#console.log(documentItemsData);#}
+                //Документ не должен быть пуст
+                if (documentItemsData.length === 0) {
+                    showMessage("Добавьте хотя бы один товар!");
+                    return;
+                }
 
-                //TODO Добавить отправку данных для создания документов
                 $.ajax(apiDocumentsURL, {
                     "method": "POST",
                     "dataType": "json",
                     "data": documentData
                 }).then((data) => {
-                    documentData.id = data.id;
+                    $.extend(documentData, data);
                     let requests = [];
                     for (let documentItem of documentItemsData) {
                         documentItem.document = documentData.id;
@@ -340,13 +339,22 @@
                             data: documentItem
                         }));
                     }
-                    let deferred = $.Deferred()
-                    $.when(...requests).done(() => {
-                        deferred.resolve("Все объекты созданы")
-                    });
-                    return deferred.promise();
-                }).then((msg) => {
-                    console.log(msg);
+                    return $.when(...requests);
+                }).then(() => {
+                    if (targetButtonId === "document-modal-save-and-apply-button" && documentData.id) {
+                        return $.ajax(`${apiDocumentApplyURL}${documentData.id}/`, {
+                            "method": "POST"
+                        });
+                    }
+                }).then(() => {
+                    $("#document-modal-close-button").trigger("click");
+                    clearFilters();
+                    $("#number-search-field").val(documentData.id);
+                    $("#show-filters-button").trigger("click");
+                    $("#search-documents-button").trigger("click");
+                }, (jqXHR) => {
+                    showAjaxError(jqXHR);
+                    return jqXHR;
                 });
             });
 
@@ -366,9 +374,6 @@
         //Обработчик кнопки отображения/скрытия фильтров
         $("#show-filters-button").click(() => {
             let $filtersDiv = $("#filters-div");
-            if ($filtersDiv.css("display") === "block") {
-                clearFilters();
-            }
             $("#create-receipt-document-button, #create-expense-document-button").toggle();
             $filtersDiv.toggle("normal");
             let $showFiltersButton = $("#show-filters-button");
