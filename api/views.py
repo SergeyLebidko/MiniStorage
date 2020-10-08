@@ -131,11 +131,14 @@ class StorageItemViewSet(RegisteredViewSet):
         return queryset
 
 
-class DocumentViewSet(viewsets.ModelViewSet):
+class DocumentViewSet(RegisteredViewSet):
     serializer_class = DocumentSerializer
     pagination_class = CustomPagination
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+
+    model = Document
+    model_verbose_name = 'Документ'
 
     def get_queryset(self):
         queryset = Document.objects.all()
@@ -184,6 +187,44 @@ class DocumentItemViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(document=document)
         return queryset
 
+    def create(self, request, *args, **kwargs):
+        result = viewsets.ModelViewSet.create(self, request, *args, **kwargs)
+        document_id = request.data.get('document')
+        document = Document.objects.get(pk=document_id)
+        document_item = DocumentItem.objects.get(pk=result.data['id'])
+        Operation.objects.create(
+            username=get_username_for_operation(request.user),
+            operation=f'В документ {document} добавлен товар {document_item}'
+        )
+        return result
+
+    def update(self, request, *args, **kwargs):
+        document_item_id = kwargs.get('pk')
+        document_item = DocumentItem.objects.filter(pk=document_item_id).first()
+        result = viewsets.ModelViewSet.update(self, request, *args, **kwargs)
+
+        if document_item:
+            count_before = document_item.count
+            count_after = result.data['count']
+            Operation.objects.create(
+                username=get_username_for_operation(request.user),
+                operation=f'В документе {document_item.document} изменено количество товара {document_item.product.title} '
+                          f'(было {count_before}, стало {count_after})'
+            )
+        return result
+
+    def destroy(self, request, *args, **kwargs):
+        document_item_id = kwargs.get('pk')
+        document_item = DocumentItem.objects.filter(pk=document_item_id).first()
+        result = viewsets.ModelViewSet.destroy(self, request, *args, **kwargs)
+
+        if document_item:
+            Operation.objects.create(
+                username=get_username_for_operation(request.user),
+                operation=f'Из документа {document_item.document} удален товар {document_item}'
+            )
+        return result
+
 
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
@@ -209,9 +250,13 @@ def apply_document(request, document_id):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-    # Если ошибок не возникло - помечаем документ как проведенный
+    # Если ошибок не возникло - помечаем документ как проведенный и регистрируем операцию
     document.apply_flag = True
     document.save()
+    Operation.objects.create(
+        username=get_username_for_operation(request.user),
+        operation=f'Документ {document} проведен'
+    )
     return Response(status=status.HTTP_200_OK)
 
 
@@ -239,7 +284,11 @@ def unapply_document(request, document_id):
     elif document.destination_type == Document.EXPENSE:
         unapply_expense_document(document)
 
-    # Если ошибок не возникло - помечаем документ как не проведенный
+    # Если ошибок не возникло - помечаем документ как не проведенный и регистрируем операцию
     document.apply_flag = False
     document.save()
+    Operation.objects.create(
+        username=get_username_for_operation(request.user),
+        operation=f'Отменено проведение документа {document}'
+    )
     return Response(status=status.HTTP_200_OK)
