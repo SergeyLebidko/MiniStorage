@@ -193,8 +193,9 @@ def apply_document(request, document_id):
         return Response({'error': f'Документ с номером {document_id} не найден'}, status=status.HTTP_400_BAD_REQUEST)
     if document.apply_flag:
         return Response({'error': f'Документ с номером {document_id} уже проведен'}, status=status.HTTP_400_BAD_REQUEST)
-
     document_items = DocumentItem.objects.filter(document=document)
+
+    # Проведение приходного документа
     if document.destination_type == Document.RECEIPT:
         for document_item in document_items:
             storage_item = StorageItem.objects.filter(product_id=document_item.product_id).first()
@@ -203,11 +204,32 @@ def apply_document(request, document_id):
                 storage_item.save()
             else:
                 StorageItem.objects.create(product=document_item.product, count=document_item.count)
-        document.apply_flag = True
-        document.save()
 
+    # Проведение расходного документа
     elif document.destination_type == Document.EXPENSE:
-        # TODO Вставить код проведения расходного документа
-        pass
+        storage_items = []
+        for document_item in document_items:
+            storage_item = StorageItem.objects.filter(product_id=document_item.product_id).first()
+            if not StorageItem:
+                return Response(
+                    {'error': f'Товар {document_item.product.title} отсутствует на складе'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            storage_item.count -= document_item.count
+            if storage_item.count < 0:
+                return Response(
+                    {'error': f'На складе недостаточно товара {document_item.product.title}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            storage_items.append(storage_item)
 
+        for storage_item in storage_items:
+            if storage_item.count == 0:
+                storage_item.delete()
+            else:
+                storage_item.save()
+
+    # Если ошибок не возникло - помечаем документ как проведенный
+    document.apply_flag = True
+    document.save()
     return Response(status=status.HTTP_200_OK)

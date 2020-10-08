@@ -172,7 +172,7 @@ function getSortFunction(showFunc, getSearchParams, baseURL) {
 
 //Функции для реализации поиска с выводом результатов в предназначенный для этого div
 
-function getDownloadListFunction($resultDiv) {
+function getDownloadListFunction($resultDiv, titleFieldName = "title") {
     function downloadList(url) {
         $.ajax(url, {
             "method": "GET",
@@ -186,7 +186,7 @@ function getDownloadListFunction($resultDiv) {
                     return;
                 }
                 for (let element of elements) {
-                    $resultDiv.append($("<p>").text(element.title).data("element", element));
+                    $resultDiv.append($("<p>").text(element[titleFieldName]).data("element", element));
                 }
             },
             "error": function (jqXHR) {

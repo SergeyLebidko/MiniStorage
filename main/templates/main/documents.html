@@ -115,6 +115,7 @@
         const apiDocumentApplyURL = "/api/apply_document/";
         const apiContractorsURL = "/api/contractors/";
         const apiProductsURL = "/api/products/";
+        const apiStorageItemsURL = "/api/storage_items/";
 
         let documentDestinations = {receipt: "Приход", expense: "Расход"};
 
@@ -213,13 +214,28 @@
 
         let documentSearch = getSearchFunction(showDocuments, getSearchParams, apiDocumentsURL);
 
-        //Обработчик кнопки создания приходного документа
-        $("#create-receipt-document-button").click(() => {
+        //Обработчик кнопок создания приходного/расходного документа
+        $("#create-receipt-document-button, #create-expense-document-button").click((event) => {
+            //Получаем тип выбранного пользователем действия (создание приходного, либо расходного документа)
+            let action = event.target.id.slice(7, 14);
+            let options = {
+                receipt: {
+                    destinationTypeText: "Приходный документ",
+                    titleFieldName: "title",
+                    productApiURL: apiProductsURL,
+                    productIdFieldName: "id"
+                },
+                expense: {
+                    destinationTypeText: "Расходный документ",
+                    titleFieldName: "product_title",
+                    productApiURL: apiStorageItemsURL,
+                    productIdFieldName: "product"
+                }
+            }
+            let option = options[action];
+
             //Скрываем ненужные элементы
             $("#control-buttons, #content-table, #navigation-div").hide();
-
-            //В соответствующий блок прописываем тип создаваемого документа
-            $("#destination-type").text("Приходный документ");
 
             //Сбрасываем значения в полях ввода/выбора и таблице с данными
             $("#contractors-list").val("");
@@ -229,8 +245,11 @@
             //Скрываем и очищаем блок с результатми поиска товаров
             $("#search-product-result-div").hide().empty();
 
+            //Выводим тип документа
+            $("#destination-type").text(option.destinationTypeText);
+
             //Добавляем обработчики для поиска товаров
-            let downloadProductsList = getDownloadListFunction($("#search-product-result-div"));
+            let downloadProductsList = getDownloadListFunction($("#search-product-result-div"), option.titleFieldName);
             let scrollProductsList = getScrollListFunction(downloadProductsList);
             $("#product-search-button").off().click(() => {
                 let searchString = $("#product-search-field").val();
@@ -240,13 +259,9 @@
                 let $resultDiv = $("#search-product-result-div");
                 $resultDiv.empty();
                 $resultDiv.slideDown("normal");
-                downloadProductsList(`${apiProductsURL}?search=${searchString}`);
+                downloadProductsList(`${option.productApiURL}?search=${searchString}`);
             });
             $("#search-product-result-div").off("scroll").scroll(scrollProductsList);
-            $("#product-clear-search-button").off().click(() => {
-                $("#product-search-field").val("");
-                $("#search-product-result-div").slideUp("normal");
-            });
 
             //Обработчик добавления товара в таблицу выбранных товаров
             $("#search-product-result-div").off("click").click((event) => {
@@ -262,8 +277,8 @@
                 for (let tableRow of $("#products-table tr")) {
                     rowData = $(tableRow).data("document_item");
                     if (rowData) {
-                        if (rowData.product === product.id) {
-                            showMessage(`Товар ${product.title} уже добавлен в документ`);
+                        if (rowData.product === product[option.productIdFieldName]) {
+                            showMessage(`Товар ${product[option.titleFieldName]} уже добавлен в документ`);
                             return;
                         }
                     }
@@ -279,10 +294,10 @@
                     $selectedRow.remove();
                 });
                 $row.append($firstCell);
-                $row.append($("<td>").text(product.id));
-                $row.append($("<td>").text(product.title));
+                $row.append($("<td>").text(product[option.productIdFieldName]));
+                $row.append($("<td>").text(product[option.titleFieldName]));
                 $row.append($("<td>").text("1"));
-                $row.data("document_item", {"product": product.id, "count": 1})
+                $row.data("document_item", {"product": product[option.productIdFieldName], "count": 1})
 
                 //Обработчик редактирования количества
                 $row.on("click", "td:not(:first-child)", (event) => {
@@ -295,6 +310,11 @@
                 });
 
                 $("#products-table tr:first-child").after($row);
+            });
+
+            $("#product-clear-search-button").off().click(() => {
+                $("#product-search-field").val("");
+                $("#search-product-result-div").slideUp("normal");
             });
 
             //Обработчики для кнопок СОХРАНИТЬ и СОХРАНИТЬ И ПРОВЕСТИ
@@ -361,7 +381,7 @@
             //Удаляем привязанные к форме данные и показываем окно для создания документа
             $("#document-modal")
                 .removeData("document")
-                .data("document", {"destination_type": "receipt"})
+                .data("document", {"destination_type": action})
                 .show("normal");
         });
 
