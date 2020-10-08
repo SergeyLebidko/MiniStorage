@@ -5,6 +5,8 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
 from openpyxl.utils import get_column_letter
 
+from main.models import DocumentItem, StorageItem
+
 
 def get_tmp_folder_path():
     return str(settings.BASE_DIR) + settings.TMP_FOLDER
@@ -62,3 +64,41 @@ def model_to_xls(model, column_descriptions):
 
 def get_username_for_operation(user):
     return user.get_full_name() or user.get_username()
+
+
+def apply_receipt_document(document):
+    document_items = DocumentItem.objects.filter(document=document)
+    for document_item in document_items:
+        storage_item = StorageItem.objects.filter(product_id=document_item.product_id).first()
+        if storage_item:
+            storage_item.count += document_item.count
+            storage_item.save()
+        else:
+            StorageItem.objects.create(product=document_item.product, count=document_item.count)
+
+
+def apply_expense_document(document):
+    document_items = DocumentItem.objects.filter(document=document)
+    storage_items = []
+    for document_item in document_items:
+        storage_item = StorageItem.objects.filter(product_id=document_item.product_id).first()
+        if not StorageItem:
+            raise Exception(document_item.product.title)
+        storage_item.count -= document_item.count
+        if storage_item.count < 0:
+            raise Exception(document_item.product.title)
+        storage_items.append(storage_item)
+
+    for storage_item in storage_items:
+        if storage_item.count == 0:
+            storage_item.delete()
+        else:
+            storage_item.save()
+
+
+def unapply_receipt_document(document):
+    apply_expense_document(document)
+
+
+def unapply_expense_document(document):
+    apply_receipt_document(document)

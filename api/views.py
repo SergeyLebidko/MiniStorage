@@ -6,7 +6,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db.models.query_utils import DeferredAttribute
 
-from utils import get_username_for_operation
+from utils import get_username_for_operation, apply_expense_document, apply_receipt_document, unapply_receipt_document, \
+    unapply_expense_document
 from main.models import Product, Contractor, StorageItem, Document, DocumentItem, Operation
 from .serializers import ProductSerializer, ContractorSerializer, StorageItemSerializer, OperationSerializer, \
     DocumentSerializer, DocumentItemSerializer
@@ -193,43 +194,52 @@ def apply_document(request, document_id):
         return Response({'error': f'Документ с номером {document_id} не найден'}, status=status.HTTP_400_BAD_REQUEST)
     if document.apply_flag:
         return Response({'error': f'Документ с номером {document_id} уже проведен'}, status=status.HTTP_400_BAD_REQUEST)
-    document_items = DocumentItem.objects.filter(document=document)
 
     # Проведение приходного документа
     if document.destination_type == Document.RECEIPT:
-        for document_item in document_items:
-            storage_item = StorageItem.objects.filter(product_id=document_item.product_id).first()
-            if storage_item:
-                storage_item.count += document_item.count
-                storage_item.save()
-            else:
-                StorageItem.objects.create(product=document_item.product, count=document_item.count)
+        apply_receipt_document(document)
 
     # Проведение расходного документа
     elif document.destination_type == Document.EXPENSE:
-        storage_items = []
-        for document_item in document_items:
-            storage_item = StorageItem.objects.filter(product_id=document_item.product_id).first()
-            if not StorageItem:
-                return Response(
-                    {'error': f'Товар {document_item.product.title} отсутствует на складе'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            storage_item.count -= document_item.count
-            if storage_item.count < 0:
-                return Response(
-                    {'error': f'На складе недостаточно товара {document_item.product.title}'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            storage_items.append(storage_item)
-
-        for storage_item in storage_items:
-            if storage_item.count == 0:
-                storage_item.delete()
-            else:
-                storage_item.save()
+        try:
+            apply_expense_document(document)
+        except Exception as ex:
+            return Response(
+                {'error': f'Невозможно провести документ. Недостаточно товара на складе: {ex}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
     # Если ошибок не возникло - помечаем документ как проведенный
     document.apply_flag = True
+    document.save()
+    return Response(status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def unapply_document(request, document_id):
+    document = Document.objects.filter(pk=document_id).first()
+    if not document:
+        return Response({'error': f'Документ с номером {document_id} не найден'}, status=status.HTTP_400_BAD_REQUEST)
+    if not document.apply_flag:
+        return Response({'error': f'Документ с номером {document_id} не проведен'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Отменяем проведение приходного документа
+    if document.destination_type == Document.RECEIPT:
+        try:
+            unapply_receipt_document(document)
+        except Exception as ex:
+            return Response(
+                {'error': f'Невозможно отменить проведение документа. Недостаточно товара на складе: {ex}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    # Отменяем проведение расходного документа
+    elif document.destination_type == Document.EXPENSE:
+        unapply_expense_document(document)
+
+    # Если ошибок не возникло - помечаем документ как не проведенный
+    document.apply_flag = False
     document.save()
     return Response(status=status.HTTP_200_OK)

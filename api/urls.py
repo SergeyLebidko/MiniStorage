@@ -1,11 +1,12 @@
 from django.urls import path
 from rest_framework import routers
 from .views import ProductViewSet, ContractorViewSet, OperationViesSet, StorageItemViewSet, DocumentViewSet, \
-    DocumentItemViewSet, contractor_categories, apply_document
+    DocumentItemViewSet, contractor_categories, apply_document, unapply_document
 
 urlpatterns = [
     path('contractor_categories/', contractor_categories, name='contractor_categories'),
-    path('apply_document/<int:document_id>/', apply_document, name='apply_document')
+    path('apply_document/<int:document_id>/', apply_document, name='apply_document'),
+    path('unapply_document/<int:document_id>/', unapply_document, name='unapply_document')
 ]
 
 router = routers.SimpleRouter()
