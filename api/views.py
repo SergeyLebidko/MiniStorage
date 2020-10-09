@@ -161,6 +161,7 @@ class DocumentViewSet(RegisteredViewSet):
             queryset = queryset.filter(dt_created__gte=dt_start)
         dt_end = self.request.query_params.get('dt_end')
         if dt_end:
+            dt_end += " 23:59:59"
             queryset = queryset.filter(dt_created__lte=dt_end)
         contractor = self.request.query_params.get('contractor')
         if contractor:
