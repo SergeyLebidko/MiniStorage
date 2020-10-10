@@ -121,6 +121,20 @@
         const apiProductsURL = "/api/products/";
         const apiStorageItemsURL = "/api/storage_items/";
 
+        const documentEditorOptionPrototype = {
+            receipt: {
+                destinationTypeText: "Приходный документ",
+                titleFieldName: "title",
+                productApiURL: apiProductsURL,
+                productIdFieldName: "id",
+            },
+            expense: {
+                destinationTypeText: "Расходный документ",
+                titleFieldName: "product_title",
+                productApiURL: apiStorageItemsURL,
+                productIdFieldName: "product",
+            }
+        };
         let documentDestinations = {receipt: "Приход", expense: "Расход"};
 
         function showDocuments(url) {
@@ -131,7 +145,6 @@
                     let documents = data.results;
                     let nextPage = data.next;
                     let prevPage = data.previous;
-
                     let $contentTable = $("#content-table");
                     $("tr:not(:first-child)", $contentTable).remove();
                     let $tableRow = null;
@@ -149,7 +162,6 @@
                         $tableRow.click(showDocument);
                         $contentTable.append($tableRow);
                     }
-
                     createPaginationButtons(prevPage, nextPage, showDocuments);
                 },
                 "error": function (jqXHR) {
@@ -171,8 +183,8 @@
                     $contractorsSearchList.append($("<option>").val("").text("- не выбран -"));
                     $contractorsList.append($("<option>").val("").text("- не выбран -"));
                     for (let contractor of data) {
-                        $contractorsSearchList.append($("<option>", {"value": contractor.id}).text(contractor.title));
-                        $contractorsList.append($("<option>", {"value": contractor.id}).text(contractor.title));
+                        $contractorsSearchList.append($("<option>", {value: contractor.id}).text(contractor.title));
+                        $contractorsList.append($("<option>", {value: contractor.id}).text(contractor.title));
                     }
                     $("#document-modal").data("contractors", data);
                 },
@@ -191,33 +203,14 @@
         }
 
         let getSearchParams = function () {
-            let searchParams = {};
-            let number = $("#number-search-field").val();
-            if (number) {
-                searchParams["number"] = number;
-            }
-            let startDtCreated = $("#start-dt-create-search-field").val();
-            if (startDtCreated) {
-                searchParams["dt_start"] = startDtCreated;
-            }
-            let endDtCreated = $("#end-dt-create-search-field").val();
-            if (endDtCreated) {
-                searchParams["dt_end"] = endDtCreated;
-            }
-            let contractor = $("#contractors-search-list").val();
-            if (contractor) {
-                searchParams["contractor"] = contractor;
-            }
-            let destinationType = $("#document-types-search-list").val();
-            if (destinationType) {
-                searchParams["destination_type"] = destinationType;
-            }
-            let applyFlagOption = $("#apply-flag-search-list").val();
-            if (applyFlagOption) {
-                searchParams["apply_flag"] = applyFlagOption;
-            }
-
-            return $.param(searchParams);
+            return $.param({
+                number: $("#number-search-field").val(),
+                dt_start: $("#start-dt-create-search-field").val(),
+                dt_end: $("#end-dt-create-search-field").val(),
+                contractor: $("#contractors-search-list").val(),
+                destination_type: $("#document-types-search-list").val(),
+                apply_flag: $("#apply-flag-search-list").val()
+            });
         }
 
         let documentSort = getSortFunction(showDocuments, getSearchParams, apiDocumentsURL);
@@ -233,25 +226,11 @@
                 if (document.apply_flag) {
                     showAppliedDocument(document, documentItems);
                 } else {
-                    let options = {
-                        receipt: {
-                            destinationTypeText: "Приходный документ",
-                            titleFieldName: "title",
-                            productApiURL: apiProductsURL,
-                            productIdFieldName: "id",
-                            document: document,
-                            documentItems: documentItems
-                        },
-                        expense: {
-                            destinationTypeText: "Расходный документ",
-                            titleFieldName: "product_title",
-                            productApiURL: apiStorageItemsURL,
-                            productIdFieldName: "product",
-                            document: document,
-                            documentItems: documentItems
-                        }
-                    }
-                    editDocument(options[document.destination_type]);
+                    let options = Object.create(documentEditorOptionPrototype);
+                    let option = options[document.destination_type];
+                    option.document = document;
+                    option.documentItems = documentItems;
+                    editDocument(option);
                 }
             }, (jqXHR) => {
                 showAjaxError(jqXHR);
@@ -275,7 +254,7 @@
             for (let contractor of contractors) {
                 if (contractor.id === document.contractor) {
                     $("#contractor-name").text("Контрагент: " + contractor.title);
-                    break
+                    break;
                 }
             }
 
@@ -301,7 +280,7 @@
                 $productTable.append($row);
             }
 
-            //Скрываем кнопки сохранения документа
+            //Скрываем кнопки сохранения и проведения документа
             $("#document-modal-save-button, #document-modal-save-and-apply-button").hide();
 
             //Показываем кнопку отмены проведения документа
@@ -328,23 +307,21 @@
         //Функция добавления нового элемента в таблицу товаров в документе
         function addDocumentItemRow(documentItem) {
             let $row = $("<tr>");
-            let $firstCell = $("<td>").addClass("td-button").text("Удалить");
-
-            //Обработчик удаления строки
-            let attachedDocumentItem = null;
-            $firstCell.click((event) => {
-                let $selectedRow = $(event.target).closest("tr");
-                attachedDocumentItem = $selectedRow.data("document_item");
-                if ("id" in attachedDocumentItem) {
-                    $("#document-modal").data("document_items_for_delete").push(attachedDocumentItem);
-                }
-                $selectedRow.remove();
-            });
-            $row.append($firstCell);
+            $row.append($("<td>").addClass("td-button").text("Удалить"));
             $row.append($("<td>").text(documentItem.product));
             $row.append($("<td>").text(documentItem.product_title));
             $row.append($("<td>").text(documentItem.count));
             $row.data("document_item", documentItem);
+
+            //Обработчик удаления строки
+            $row.on("click", "td:first-child", (event) => {
+                let $selectedRow = $(event.target).closest("tr");
+                let attachedDocumentItem = $selectedRow.data("document_item");
+                if ("id" in attachedDocumentItem) {
+                    $("#document-modal").data("document_items_for_delete").push(attachedDocumentItem);
+                }
+                $selectedRow.remove();
+            })
 
             //Обработчик щелчка по строке товара (открывает модалку редактирования количества товара)
             $row.on("click", "td:not(:first-child)", (event) => {
@@ -455,22 +432,9 @@
         $("#create-receipt-document-button, #create-expense-document-button").click((event) => {
             //Получаем тип выбранного пользователем действия (создание приходного, либо расходного документа)
             let action = event.target.id.slice(7, 14);
-            let options = {
-                receipt: {
-                    destinationTypeText: "Приходный документ",
-                    titleFieldName: "title",
-                    productApiURL: apiProductsURL,
-                    productIdFieldName: "id",
-                    document: {"destination_type": action}
-                },
-                expense: {
-                    destinationTypeText: "Расходный документ",
-                    titleFieldName: "product_title",
-                    productApiURL: apiStorageItemsURL,
-                    productIdFieldName: "product",
-                    document: {"destination_type": action}
-                }
-            }
+            let options = Object.create(documentEditorOptionPrototype);
+            let option = options[action];
+            option.document = {"destination_type": action};
             editDocument(options[action]);
         });
 
@@ -519,7 +483,7 @@
                     }));
                 }
                 for (let documentItem of documentItemsForDelete) {
-                    requests.push($.ajax(apiDocumentItemsURL, {
+                    requests.push($.ajax(`${apiDocumentItemsURL}${documentItem.id}/`, {
                         "method": "DELETE",
                         data: documentItem
                     }));
@@ -527,9 +491,13 @@
                 return $.when(...requests);
             }).then(() => {
                 if (targetButtonId === "document-modal-save-and-apply-button" && document.id) {
-                    return $.ajax(`${apiDocumentApplyURL}${document.id}/`, {
-                        "method": "POST"
-                    });
+                    if (document.to_remove) {
+                        showMessage("Нельзя выполнить проведение документа, помеченного на удаление!");
+                    } else {
+                        return $.ajax(`${apiDocumentApplyURL}${document.id}/`, {
+                            "method": "POST"
+                        });
+                    }
                 }
             }).then(() => {
                 closeDocumentModal(document);
