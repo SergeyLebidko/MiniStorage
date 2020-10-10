@@ -41,6 +41,7 @@
             <div class="operation-div modal-control-buttons">
                 <span class="span-button" id="document-modal-close-button">X</span>
             </div>
+            <p id="document-number"></p>
             <p id="destination-type"></p>
             <select name="contractors-list" id="contractors-list"></select>
             <span id="contractor-name"></span><br>
@@ -50,6 +51,9 @@
                 <span class="span-button" id="product-clear-search-button">Очистить</span>
             </div>
             <div class="search-result-div" id="search-product-result-div" style="display: none"></div>
+            <p>
+                Пометить на удаление: <input type="checkbox" name="document-to-remove" id="document-to-remove">
+            </p>
             <div class="operation-div">
                 <table class="content-table" id="products-table">
                     <tr>
@@ -112,6 +116,7 @@
         const apiDocumentsURL = "/api/documents/";
         const apiDocumentItemsURL = "/api/document_items/";
         const apiDocumentApplyURL = "/api/apply_document/";
+        const apiDocumentUnApplyURL = "/api/unapply_document/";
         const apiContractorsURL = "/api/contractors/";
         const apiProductsURL = "/api/products/";
         const apiStorageItemsURL = "/api/storage_items/";
@@ -224,11 +229,29 @@
             let document = $(this).data("document");
             $.ajax(apiDocumentItemsURL, {
                 data: {document: document.id}
-            }).then((data) => {
+            }).then((documentItems) => {
                 if (document.apply_flag) {
-                    workForApplyDocument(document, data);
+                    showAppliedDocument(document, documentItems);
                 } else {
-                    workForNotApplyDocument(document, data);
+                    let options = {
+                        receipt: {
+                            destinationTypeText: "Приходный документ",
+                            titleFieldName: "title",
+                            productApiURL: apiProductsURL,
+                            productIdFieldName: "id",
+                            document: document,
+                            documentItems: documentItems
+                        },
+                        expense: {
+                            destinationTypeText: "Расходный документ",
+                            titleFieldName: "product_title",
+                            productApiURL: apiStorageItemsURL,
+                            productIdFieldName: "product",
+                            document: document,
+                            documentItems: documentItems
+                        }
+                    }
+                    editDocument(options[document.destination_type]);
                 }
             }, (jqXHR) => {
                 showAjaxError(jqXHR);
@@ -236,7 +259,7 @@
         }
 
         //Функция для работы с проведенным документом
-        function workForApplyDocument(document, documentItems) {
+        function showAppliedDocument(document, documentItems) {
             //Скрываем ненужные элементы
             $("#control-buttons, #content-table, #navigation-div").hide();
             if ($("#filters-div").css("display") === "block") {
@@ -259,8 +282,15 @@
             //Скрываем элементы для выбора товаров
             $("#product-selection-elements").hide();
 
+            //Выводим номер документа
+            $("#document-number").show().text("Номер документа: " + document.id);
+
+            //Запрещаем помечать документ на удаление
+            $("#document-to-remove").prop({"disabled": true, "checked": false});
+
             //Выводим список товаров в документе
             let $productTable = $("#products-table");
+            $("tr:not(:first-child)", $productTable).remove();
             let $row = null;
             for (let documentItem of documentItems) {
                 $row = $("<tr>");
@@ -274,7 +304,7 @@
             //Скрываем кнопки сохранения документа
             $("#document-modal-save-button, #document-modal-save-and-apply-button").hide();
 
-            //ПОказываем кнопку отмены проведения документа
+            //Показываем кнопку отмены проведения документа
             $("#document-modal-unapply-button").show();
 
             //Показываем окно документа
@@ -283,50 +313,54 @@
                 .show("normal");
         }
 
-        //Функция для работы с не проведенным документом
-        function workForNotApplyDocument(document, documentItems) {
-            alert("Работа с непроведенными документами еще не реализована")
+        //Функция закрытия окна document-modal
+        function closeDocumentModal(document = null) {
+            $("#document-modal").hide("normal");
+            $("#control-buttons, #content-table, #navigation-div").show();
+            if (document) {
+                clearFilters();
+                $("#number-search-field").val(document.id);
+                $("#show-filters-button").trigger("click");
+                $("#search-documents-button").trigger("click");
+            }
         }
 
-        //Обработчик кнопок создания приходного/расходного документа
-        $("#create-receipt-document-button, #create-expense-document-button").click((event) => {
-            //Получаем тип выбранного пользователем действия (создание приходного, либо расходного документа)
-            let action = event.target.id.slice(7, 14);
-            let options = {
-                receipt: {
-                    destinationTypeText: "Приходный документ",
-                    titleFieldName: "title",
-                    productApiURL: apiProductsURL,
-                    productIdFieldName: "id"
-                },
-                expense: {
-                    destinationTypeText: "Расходный документ",
-                    titleFieldName: "product_title",
-                    productApiURL: apiStorageItemsURL,
-                    productIdFieldName: "product"
+        //Функция добавления нового элемента в таблицу товаров в документе
+        function addDocumentItemRow(documentItem) {
+            let $row = $("<tr>");
+            let $firstCell = $("<td>").addClass("td-button").text("Удалить");
+
+            //Обработчик удаления строки
+            let attachedDocumentItem = null;
+            $firstCell.click((event) => {
+                let $selectedRow = $(event.target).closest("tr");
+                attachedDocumentItem = $selectedRow.data("document_item");
+                if ("id" in attachedDocumentItem) {
+                    $("#document-modal").data("document_items_for_delete").push(attachedDocumentItem);
                 }
-            }
-            let option = options[action];
+                $selectedRow.remove();
+            });
+            $row.append($firstCell);
+            $row.append($("<td>").text(documentItem.product));
+            $row.append($("<td>").text(documentItem.product_title));
+            $row.append($("<td>").text(documentItem.count));
+            $row.data("document_item", documentItem);
 
-            //Скрываем ненужные элементы
-            $("#control-buttons, #content-table, #navigation-div").hide();
+            //Обработчик щелчка по строке товара (открывает модалку редактирования количества товара)
+            $row.on("click", "td:not(:first-child)", (event) => {
+                let $modal = $("#count-editor");
+                let $targetRow = $(event.target).closest("tr")
+                $modal.data("row", $targetRow);
+                $("#product-title").text($("td", $targetRow).eq(2).text());
+                $("#product-count").val($("td", $targetRow).eq(3).text());
+                showModal($modal);
+            });
 
-            //Подготавливаем необходимые элементы управления
-            $("#document-modal-unapply-button").hide();
-            $("#document-modal-save-button, #document-modal-save-and-apply-button").show();
-            $("#contractor-name").text("");
-            $("#contractors-list").show().val("");
-            $("#product-selection-elements").show();
-            $("#product-search-field").val("");
-            $("#products-table tr:not(:first)").remove();
+            $("#products-table tr:first-child").after($row);
+        }
 
-            //Скрываем и очищаем блок с результатми поиска товаров
-            $("#search-product-result-div").hide().empty();
-
-            //Выводим тип документа
-            $("#destination-type").text(option.destinationTypeText);
-
-            //Добавляем обработчики для поиска товаров
+        //Функция добавления обработчиков для поиска товаров при редактировании документа
+        function addProductSearchHandlers(option) {
             let downloadProductsList = getDownloadListFunction($("#search-product-result-div"), option.titleFieldName);
             let scrollProductsList = getScrollListFunction(downloadProductsList);
             $("#product-search-button").off().click(() => {
@@ -363,37 +397,81 @@
                 }
 
                 //Этап третий - добавляем строку и связываем с ней данные
-                let $row = $("<tr>");
-                let $firstCell = $("<td>").addClass("td-button").text("Удалить");
-
-                //Обработчик удаления строки
-                $firstCell.click((event) => {
-                    let $selectedRow = $(event.target).closest("tr");
-                    $selectedRow.remove();
+                addDocumentItemRow({
+                    product: product[option.productIdFieldName],
+                    product_title: product[option.titleFieldName],
+                    count: 1
                 });
-                $row.append($firstCell);
-                $row.append($("<td>").text(product[option.productIdFieldName]));
-                $row.append($("<td>").text(product[option.titleFieldName]));
-                $row.append($("<td>").text("1"));
-                $row.data("document_item", {"product": product[option.productIdFieldName], "count": 1})
-
-                //Обработчик щелчка по строке товара (открывает модалку редактирования количества товара)
-                $row.on("click", "td:not(:first-child)", (event) => {
-                    let $modal = $("#count-editor");
-                    let $targetRow = $(event.target).closest("tr")
-                    $modal.data("row", $targetRow);
-                    $("#product-title").text($("td", $targetRow).eq(2).text());
-                    $("#product-count").val($("td", $targetRow).eq(3).text());
-                    showModal($modal);
-                });
-
-                $("#products-table tr:first-child").after($row);
             });
+        }
+
+        //Функция редактирования существующего/нового документа
+        function editDocument(option) {
+            let document = option.document;
+
+            //Подготавливаем элементы управления
+            $("#control-buttons, #content-table, #navigation-div").hide();
+            $("#document-modal-unapply-button").hide();
+            $("#contractor-name").text("");
+            $("#document-modal-save-button, #document-modal-save-and-apply-button").show();
+            $("#product-selection-elements").show();
+            $("#product-search-field").val("");
+            $("#products-table tr:not(:first)").remove();
+            $("#search-product-result-div").hide().empty();
+            $("#destination-type").text(option.destinationTypeText);
+            $("#document-modal").data("document_items_for_delete", []);
+            if ($("#filters-div").css("display") === "block") {
+                $("#show-filters-button").trigger("click");
+            }
+
+            if (!("id" in document)) {
+                //Если выводим окно для создания нового документа
+                //Подготавливаем необходимые элементы управления
+                $("#contractors-list").show().val("");
+                $("#document-to-remove").prop({"disabled": true, "checked": false});
+                $("#document-number").hide();
+            } else {
+                //Если выводим окно для редактирования уже существующего документа
+                $("#contractors-list").show().val(document.contractor);
+                $("#document-to-remove").prop({"disabled": false, "checked": document.to_remove});
+                $("#document-number").show().text("Номер документа: " + document.id);
+                $("#destination-type").text();
+
+                for (let documentItem of option.documentItems) {
+                    addDocumentItemRow(documentItem);
+                }
+            }
+
+            //Добавляем обработчики для поиска товаров
+            addProductSearchHandlers(option);
 
             //Удаляем привязанные к форме данные и показываем окно для создания документа
             $("#document-modal")
-                .data("document", {"destination_type": action})
+                .data("document", document)
                 .show("normal");
+        }
+
+        //Обработчик кнопок создания приходного/расходного документа
+        $("#create-receipt-document-button, #create-expense-document-button").click((event) => {
+            //Получаем тип выбранного пользователем действия (создание приходного, либо расходного документа)
+            let action = event.target.id.slice(7, 14);
+            let options = {
+                receipt: {
+                    destinationTypeText: "Приходный документ",
+                    titleFieldName: "title",
+                    productApiURL: apiProductsURL,
+                    productIdFieldName: "id",
+                    document: {"destination_type": action}
+                },
+                expense: {
+                    destinationTypeText: "Расходный документ",
+                    titleFieldName: "product_title",
+                    productApiURL: apiStorageItemsURL,
+                    productIdFieldName: "product",
+                    document: {"destination_type": action}
+                }
+            }
+            editDocument(options[action]);
         });
 
         //Обработчики для кнопок СОХРАНИТЬ и СОХРАНИТЬ И ПРОВЕСТИ
@@ -406,51 +484,55 @@
             let targetButtonId = $(event.target).prop("id");
 
             //Извлекаем связанные данные
-            let documentData = $("#document-modal").data("document");
-            documentData.contractor = +contractor;
+            let document = $("#document-modal").data("document");
+            document.contractor = +contractor;
 
-            let documentItemsData = [];
-            let documentItemData;
-            for (let tableRow of $("#products-table tr")) {
-                documentItemData = $(tableRow).data("document_item");
-                if (documentItemData) {
-                    documentItemsData.push(documentItemData);
-                }
+            //Извлекаем значение флажка пометки на удаление
+            document.to_remove = $("#document-to-remove:checked").val() ? true : false;
+
+            let documentItems = [];
+            for (let tableRow of $("#products-table tr:not(:first-child)")) {
+                documentItems.push($(tableRow).data("document_item"));
             }
+            let documentItemsForDelete = $("#document-modal").data("document_items_for_delete");
 
             //Документ не должен быть пуст
-            if (documentItemsData.length === 0) {
+            if (documentItems.length === 0) {
                 showMessage("Добавьте хотя бы один товар!");
                 return;
             }
 
-            $.ajax(apiDocumentsURL, {
-                "method": "POST",
+            $.ajax(`${apiDocumentsURL}${"id" in document ? document.id + "/" : ""}`, {
+                "method": "id" in document ? "PATCH" : "POST",
                 "dataType": "json",
-                "data": documentData
+                "data": document
             }).then((data) => {
-                $.extend(documentData, data);
+                $.extend(document, data);
                 let requests = [];
-                for (let documentItem of documentItemsData) {
-                    documentItem.document = documentData.id;
+                for (let documentItem of documentItems) {
+                    if (!("document" in documentItem)) {
+                        documentItem.document = document.id;
+                    }
+                    requests.push($.ajax(`${apiDocumentItemsURL}${"id" in documentItem ? documentItem.id + "/" : ""}`, {
+                        "method": "id" in documentItem ? "PATCH" : "POST",
+                        data: documentItem
+                    }));
+                }
+                for (let documentItem of documentItemsForDelete) {
                     requests.push($.ajax(apiDocumentItemsURL, {
-                        "method": "POST",
+                        "method": "DELETE",
                         data: documentItem
                     }));
                 }
                 return $.when(...requests);
             }).then(() => {
-                if (targetButtonId === "document-modal-save-and-apply-button" && documentData.id) {
-                    return $.ajax(`${apiDocumentApplyURL}${documentData.id}/`, {
+                if (targetButtonId === "document-modal-save-and-apply-button" && document.id) {
+                    return $.ajax(`${apiDocumentApplyURL}${document.id}/`, {
                         "method": "POST"
                     });
                 }
             }).then(() => {
-                $("#document-modal-close-button").trigger("click");
-                clearFilters();
-                $("#number-search-field").val(documentData.id);
-                $("#show-filters-button").trigger("click");
-                $("#search-documents-button").trigger("click");
+                closeDocumentModal(document);
             }, (jqXHR) => {
                 showAjaxError(jqXHR);
                 return jqXHR;
@@ -459,7 +541,14 @@
 
         //Обработчик для кнопки ОТМЕНА ПРОВЕДЕНИЯ
         $("#document-modal-unapply-button").click(() => {
-            alert("Функциональность отмены проведения пока не реализована");
+            let document = $("#document-modal").data("document");
+            $.ajax(`${apiDocumentUnApplyURL}${document.id}/`, {
+                "method": "POST"
+            }).then(() => {
+                closeDocumentModal(document);
+            }, (jqXHR) => {
+                showAjaxError(jqXHR);
+            })
         });
 
         //Обработчик кнопки очистки поля поиска товаров
@@ -468,10 +557,9 @@
             $("#search-product-result-div").slideUp("normal");
         });
 
-        //Обработчик кнопки закрытия окна создания/редактирования документа без сохранения изменений
+        //Обработчик кнопки закрытия окна document-modal без сохранения изменений
         $("#document-modal-close-button, #document-modal-cancel-button").click(() => {
-            $("#document-modal").hide("normal");
-            $("#control-buttons, #content-table, #navigation-div").show();
+            closeDocumentModal();
         });
 
         //Обработчик кнопки отображения/скрытия фильтров

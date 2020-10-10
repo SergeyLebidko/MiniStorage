@@ -207,11 +207,12 @@ class DocumentItemViewSet(viewsets.ModelViewSet):
         if document_item:
             count_before = document_item.count
             count_after = result.data['count']
-            Operation.objects.create(
-                username=get_username_for_operation(request.user),
-                operation=f'В документе {document_item.document} изменено количество товара {document_item.product.title} '
-                          f'(было {count_before}, стало {count_after})'
-            )
+            if count_before != count_after:
+                Operation.objects.create(
+                    username=get_username_for_operation(request.user),
+                    operation=f'В документе {document_item.document} изменено количество товара {document_item.product.title} '
+                              f'(было {count_before}, стало {count_after})'
+                )
         return result
 
     def destroy(self, request, *args, **kwargs):
