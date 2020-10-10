@@ -4,7 +4,7 @@
     <div class="basic-div login-div">
         {% if user.is_authenticated %}
             Вы уже выполнили вход на сайт
-            <a href="{% url 'index' %}">Перейти на главную страницу</a>
+            <a href="{% url 'main:index' %}">Перейти на главную страницу</a>
         {% else %}
             <form method="post">
                 {% csrf_token %}

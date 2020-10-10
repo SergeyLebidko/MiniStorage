@@ -56,6 +56,7 @@ def storage_items(request):
     return render(request, 'main/storage_items.html', context={})
 
 
+@login_required(login_url='login')
 def products_to_xls(request):
     column_descriptions = [
         {'machine_name': 'id', 'display_name': 'Номер'},
@@ -74,6 +75,7 @@ def products_to_xls(request):
     )
 
 
+@login_required(login_url='login')
 def contractors_to_xls(request):
     column_descriptions = [
         {'machine_name': 'id', 'display_name': 'Номер'},
@@ -90,3 +92,8 @@ def contractors_to_xls(request):
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         filename='products.xlsx'
     )
+
+
+@login_required(login_url='login')
+def remove_marked_objects(request):
+    return render(request, 'main/remove_marked_objects.html', context={})

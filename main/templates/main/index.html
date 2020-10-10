@@ -47,19 +47,19 @@
                     <ul>
                         <li>
                             <span>
-                                <a href="{% url 'products' %}">Товары</a>
+                                <a href="{% url 'main:products' %}">Товары</a>
                             </span>
                         </li>
                         <li>
                             <span>
-                                <a href="{% url 'contractors' %}">Контрагенты</a>
+                                <a href="{% url 'main:contractors' %}">Контрагенты</a>
                             </span>
                         </li>
                     </ul>
                 </li>
                 <li>
                     <span>
-                        <a href="{% url 'documents' %}">Документы</a>
+                        <a href="{% url 'main:documents' %}">Документы</a>
                     </span>
                 </li>
                 <li>
@@ -67,12 +67,12 @@
                     <ul>
                         <li>
                             <span>
-                                <a href="{% url 'products_to_xls' %}">Список товаров (XLS)</a>
+                                <a href="{% url 'main:products_to_xls' %}">Список товаров (XLS)</a>
                             </span>
                         </li>
                         <li>
                             <span>
-                                <a href="{% url 'contractors_to_xls' %}">Список контрагентов (XLS)</a>
+                                <a href="{% url 'main:contractors_to_xls' %}">Список контрагентов (XLS)</a>
                             </span>
                         </li>
                     </ul>
@@ -86,15 +86,20 @@
                                     <a href="/admin/">Администрирование</a>
                                 </span>
                             </li>
+                            <li>
+                                <span>
+                                    <a href="{% url 'main:remove_marked_objects' %}">Удаление помеченных объектов</a>
+                                </span>
+                            </li>
                         {% endif %}
                         <li>
                             <span>
-                                <a href="{% url 'operations' %}">Журнал операций</a>
+                                <a href="{% url 'main:operations' %}">Журнал операций</a>
                             </span>
                         </li>
                         <li>
                             <span>
-                                <a href="{% url 'storage_items' %}">Управление остатками</a>
+                                <a href="{% url 'main:storage_items' %}">Управление остатками</a>
                             </span>
                         </li>
                     </ul>

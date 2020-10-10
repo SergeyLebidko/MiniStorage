@@ -294,3 +294,10 @@ def unapply_document(request, document_id):
         operation=f'Отменено проведение документа {document}'
     )
     return Response(status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def remove_marked_objects(request):
+    return Response(status=status.HTTP_204_NO_CONTENT)
