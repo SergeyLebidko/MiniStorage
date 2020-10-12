@@ -61,9 +61,12 @@
                         <th>Номер</th>
                         <th>Наименование</th>
                         <th>Количество</th>
+                        <th>Цена</th>
+                        <th>Сумма</th>
                     </tr>
                 </table>
             </div>
+            <span style="float: left" id="total-sum">Итого:</span>
             <div class="operation-div modal-control-buttons">
                 <span class="span-button" id="document-modal-cancel-button">Отмена</span>
                 <span class="span-button" id="document-modal-save-button">Сохранить</span>
@@ -125,12 +128,14 @@
             receipt: {
                 destinationTypeText: "Приходный документ",
                 titleFieldName: "title",
+                priceFieldName: "price",
                 productApiURL: apiProductsURL,
                 productIdFieldName: "id",
             },
             expense: {
                 destinationTypeText: "Расходный документ",
                 titleFieldName: "product_title",
+                priceFieldName: "product_price",
                 productApiURL: apiStorageItemsURL,
                 productIdFieldName: "product",
             }
@@ -277,8 +282,14 @@
                 $row.append($("<td>").text(documentItem.product));
                 $row.append($("<td>").text(documentItem.product_title));
                 $row.append($("<td>").text(documentItem.count));
+                $row.append($("<td>").text(documentItem.product_price));
+                $row.append($("<td>").text(documentItem.product_price * documentItem.count));
+                $row.data("document_item", documentItem);
                 $productTable.append($row);
             }
+
+            //Пересчитываем итог
+            refreshTotalSum();
 
             //Скрываем кнопки сохранения и проведения документа
             $("#document-modal-save-button, #document-modal-save-and-apply-button").hide();
@@ -311,6 +322,8 @@
             $row.append($("<td>").text(documentItem.product));
             $row.append($("<td>").text(documentItem.product_title));
             $row.append($("<td>").text(documentItem.count));
+            $row.append($("<td>").text(documentItem.product_price));
+            $row.append($("<td>").text(documentItem.product_price * documentItem.count));
             $row.data("document_item", documentItem);
 
             //Обработчик удаления строки
@@ -321,6 +334,7 @@
                     $("#document-modal").data("document_items_for_delete").push(attachedDocumentItem);
                 }
                 $selectedRow.remove();
+                refreshTotalSum();
             })
 
             //Обработчик щелчка по строке товара (открывает модалку редактирования количества товара)
@@ -334,6 +348,7 @@
             });
 
             $("#products-table tr:first-child").after($row);
+            refreshTotalSum();
         }
 
         //Функция добавления обработчиков для поиска товаров при редактировании документа
@@ -377,6 +392,7 @@
                 addDocumentItemRow({
                     product: product[option.productIdFieldName],
                     product_title: product[option.titleFieldName],
+                    product_price: product[option.priceFieldName],
                     count: 1
                 });
             });
@@ -400,6 +416,7 @@
             if ($("#filters-div").css("display") === "block") {
                 $("#show-filters-button").trigger("click");
             }
+            $("#total-sum").text("Итого:");
 
             if (!("id" in document)) {
                 //Если выводим окно для создания нового документа
@@ -426,6 +443,18 @@
             $("#document-modal")
                 .data("document", document)
                 .show("normal");
+        }
+
+        //Функция обновления итоговой суммы
+        function refreshTotalSum() {
+            let documentItems = $("#products-table tr:not(:first-child)").map(function () {
+                return $(this).data("document_item");
+            });
+            let totalSum = 0;
+            for (let documentItem of documentItems) {
+                totalSum += documentItem.product_price * documentItem.count;
+            }
+            $("#total-sum").text(`Итого: ${totalSum}`);
         }
 
         //Обработчик кнопок создания приходного/расходного документа
@@ -503,6 +532,7 @@
                 closeDocumentModal(document);
             }, (jqXHR) => {
                 showAjaxError(jqXHR);
+                closeDocumentModal(document);
                 return jqXHR;
             });
         });
@@ -566,7 +596,9 @@
 
             $("td", $row).eq(3).text(newCount);
             documentItem.count = +newCount;
+            $("td", $row).eq(5).text(newCount * documentItem.product_price);
             closeModal($("#count-editor"));
+            refreshTotalSum();
         });
         $("#count-editor-cancel-button, #count-editor-close-button").click(() => {
             closeModal($("#count-editor"));

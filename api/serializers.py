@@ -25,6 +25,7 @@ class StorageItemSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         result = serializers.ModelSerializer.to_representation(self, instance)
         result['product_title'] = instance.product.title
+        result['product_price'] = instance.product.price
         return result
 
     class Meta:
@@ -48,6 +49,7 @@ class DocumentItemSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         result = serializers.ModelSerializer.to_representation(self, instance)
         result['product_title'] = instance.product.title
+        result['product_price'] = instance.product.price
         return result
 
     class Meta:
