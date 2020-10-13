@@ -338,3 +338,10 @@ def remove_marked_objects(request):
             )
 
     return Response(data=result, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def import_products(request):
+    return Response(status=status.HTTP_200_OK)

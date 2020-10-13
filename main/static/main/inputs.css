@@ -5,7 +5,7 @@ input[type=text], input[type=password] {
     border-radius: 4px;
 }
 
-input[type=date] {
+input[type=date], input[type=file] {
     padding: 6px 10px;
     border: 1px solid RGB(205, 205, 205);
     border-radius: 4px;

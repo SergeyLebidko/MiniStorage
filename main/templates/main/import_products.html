@@ -1,0 +1,44 @@
+{% extends 'main/index.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="basic-div content-div"><strong>Импорт справочника товаров</strong></div>
+    <div class="basic-div content-div" id="content-div">
+        <p>
+            Справочник товаров должен быть представлен в виде xlsx-файла со структурой, подобной приведенной ниже.
+            Импортированые товары будут добавлены в текущий справочник.
+        </p>
+        <table class="content-table">
+            <tr>
+                <th>Наименование</th>
+                <th>Цена</th>
+            </tr>
+            <tr>
+                <td>Товар 1</td>
+                <td>1000</td>
+            </tr>
+            <tr>
+                <td>Товар 2</td>
+                <td>2000</td>
+            </tr>
+            <tr>
+                <td>Товар 3</td>
+                <td>1500</td>
+            </tr>
+        </table>
+        <br>
+        <div class="operation-div">
+            Выберите файл: <input type="file" name="file" id="file">
+            <span class="span-button" id="import-button">Импортировать</span>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $("#import-button").click(() => {
+            let $fileField = $("#file");
+            console.log($fileField.prop("files")[0]);
+        });
+    </script>
+{% endblock %}

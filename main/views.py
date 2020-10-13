@@ -97,3 +97,8 @@ def contractors_to_xls(request):
 @login_required(login_url='login')
 def remove_marked_objects(request):
     return render(request, 'main/remove_marked_objects.html', context={})
+
+
+@login_required(login_url='login')
+def import_products(request):
+    return render(request, 'main/import_products.html', context={})
