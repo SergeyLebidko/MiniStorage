@@ -43,3 +43,9 @@
 .content-table td {
     padding: 5px 5px 10px 10px;
 }
+
+p.report-block {
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid RGB(200, 200, 200);
+}

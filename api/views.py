@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models.query_utils import DeferredAttribute
+from django.db.models.deletion import ProtectedError
 
 from utils import get_username_for_operation, apply_expense_document, apply_receipt_document, unapply_receipt_document, \
     unapply_expense_document
@@ -300,4 +301,40 @@ def unapply_document(request, document_id):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def remove_marked_objects(request):
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    result = []
+
+    models_to_remove = [
+        (StorageItem, 'Товары на складе', 'товар на складе'),
+        (Document, 'Документы', 'документ'),
+        (Product, 'Товары', 'товар'),
+        (Contractor, 'Контрагенты', 'контрагент')
+    ]
+    for model, description, operation_description in models_to_remove:
+        success_list = []
+        fail_list = []
+        objects_to_remove = model.objects.filter(to_remove=True)
+        for obj in objects_to_remove:
+            string_description = str(obj)
+            try:
+                obj.delete()
+                success_list.append(string_description)
+                Operation.objects.create(
+                    username=get_username_for_operation(request.user),
+                    operation=f'Удален {operation_description} {string_description}'
+                )
+            except ProtectedError:
+                fail_list.append(string_description)
+                Operation.objects.create(
+                    username=get_username_for_operation(request.user),
+                    operation=f'Не удалось удалить {operation_description} {string_description}'
+                )
+        if success_list or fail_list:
+            result.append(
+                {
+                    'description': description,
+                    'success_list': success_list,
+                    'fail_list': fail_list
+                }
+            )
+
+    return Response(data=result, status=status.HTTP_200_OK)
