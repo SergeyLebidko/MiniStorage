@@ -14,6 +14,7 @@ from .serializers import ProductSerializer, ContractorSerializer, StorageItemSer
     DocumentSerializer, DocumentItemSerializer
 from .pagination import CustomPagination
 from .authentication import TokenAuthentication
+from utils import get_tmp_file_path
 
 
 class RegisteredViewSet(viewsets.ModelViewSet):
@@ -344,4 +345,9 @@ def remove_marked_objects(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def import_products(request):
+    uploaded_file = request.data['uploaded_file']
+    path = get_tmp_file_path('uploaded_file.xlsx')
+    with open(path, 'wb') as output_file:
+        output_file.write(uploaded_file.read())
+
     return Response(status=status.HTTP_200_OK)

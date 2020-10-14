@@ -6,6 +6,8 @@
     <div class="basic-div content-div" id="content-div">
         <p>
             Справочник товаров должен быть представлен в виде xlsx-файла со структурой, подобной приведенной ниже.
+            Первая строка файла считается строкой-заголовком таблицы и игнорируется. Импорт идет до тех пор, пока не
+            в файле не встретитсяперва пустая строка.
             Импортированые товары будут добавлены в текущий справочник.
         </p>
         <table class="content-table">
@@ -28,7 +30,7 @@
         </table>
         <br>
         <div class="operation-div">
-            Выберите файл: <input type="file" name="file" id="file">
+            Выберите файл: <input type="file" name="file" id="file" accept=".xlsx">
             <span class="span-button" id="import-button">Импортировать</span>
         </div>
     </div>
@@ -36,9 +38,25 @@
 
 {% block scripts %}
     <script>
+        const apiImportProductsURL = "/api/import_products/";
+
         $("#import-button").click(() => {
             let $fileField = $("#file");
-            console.log($fileField.prop("files")[0]);
+            let file = $fileField.prop("files")[0];
+
+            let formData = new FormData();
+            formData.append("uploaded_file", file);
+
+            $.ajax(apiImportProductsURL, {
+                "method": "POST",
+                "dataType": "json",
+                "data": formData,
+                "processData": false,
+                "contentType": false,
+                "success": function (data) {
+                    console.log(data);
+                }
+            })
         });
     </script>
 {% endblock %}
