@@ -25,7 +25,7 @@ class BaseDataModel(models.Model):
 
 class Product(BaseDataModel):
     title = models.CharField(max_length=200, verbose_name='Наименование')
-    description = models.TextField(verbose_name='Описание', null=True, blank=True)
+    description = models.TextField(verbose_name='Описание', null=True, blank=True, default='')
     price = models.IntegerField(verbose_name='Цена')
 
     def __str__(self):

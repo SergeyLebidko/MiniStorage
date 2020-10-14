@@ -1,3 +1,4 @@
+import os
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -15,6 +16,7 @@ from .serializers import ProductSerializer, ContractorSerializer, StorageItemSer
 from .pagination import CustomPagination
 from .authentication import TokenAuthentication
 from utils import get_tmp_file_path
+from main.management.commands.load_test_products import action
 
 
 class RegisteredViewSet(viewsets.ModelViewSet):
@@ -57,6 +59,9 @@ class RegisteredViewSet(viewsets.ModelViewSet):
 
             username = get_username_for_operation(request.user)
             if main_fields_before != main_fields_after:
+                print(main_fields_before)
+                print(main_fields_after)
+
                 operation = f'Изменен {self.model_verbose_name}: {updated_element}'
                 Operation.objects.create(username=username, operation=operation)
             if not to_remove_before and to_remove_after:
@@ -349,5 +354,16 @@ def import_products(request):
     path = get_tmp_file_path('uploaded_file.xlsx')
     with open(path, 'wb') as output_file:
         output_file.write(uploaded_file.read())
+
+    try:
+        created_records = action(file_path=path)
+        Operation.objects.create(
+            username=get_username_for_operation(request.user),
+            operation=f'Импортировано товаров: {created_records}'
+        )
+    except Exception as ex:
+        return Response(data=f'Ошибка при импорте: {ex}', status=status.HTTP_400_BAD_REQUEST)
+    finally:
+        os.remove(path)
 
     return Response(status=status.HTTP_200_OK)

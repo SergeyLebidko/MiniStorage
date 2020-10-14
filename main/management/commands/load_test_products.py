@@ -4,30 +4,27 @@ from openpyxl import load_workbook
 from main.models import Product, Operation
 
 
-def action(count=None):
-    file_path = str(settings.BASE_DIR) + '/test_data/products.xlsx'
+def action(count=None, file_path=None):
+    if not file_path:
+        file_path = str(settings.BASE_DIR) + '/test_data/products.xlsx'
     work_book = load_workbook(file_path)
     sheet = work_book.get_sheet_by_name('data')
 
-    Product.objects.all().delete()
     data = []
-    row = 1
+    row = 2
     while True:
         if count is not None and row > count:
             break
-        title = sheet.cell(row=row, column=3).value
-        price = sheet.cell(row=row, column=4).value
+        title = sheet.cell(row=row, column=1).value
+        price = sheet.cell(row=row, column=2).value
         if not title:
             break
         data.append(Product(title=title, price=price))
         row += 1
 
     Product.objects.bulk_create(data)
-    Operation.objects.create(
-        username='- Администратор системы -',
-        operation=f'Командой load_test_products создано {row - 1} записей о товарах'
-    )
-    return row - 1
+
+    return row - 2
 
 
 class Command(BaseCommand):
@@ -40,6 +37,11 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        Product.objects.all().delete()
         count = options['count']
         created_records = action(count)
-        print(f'Создано записей: {created_records - 1}')
+        Operation.objects.create(
+            username='- Администратор системы -',
+            operation=f'Командой load_test_products создано {created_records} записей о товарах'
+        )
+        print(f'Создано записей: {created_records}')

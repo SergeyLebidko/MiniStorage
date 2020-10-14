@@ -7,7 +7,7 @@
         <p>
             Справочник товаров должен быть представлен в виде xlsx-файла со структурой, подобной приведенной ниже.
             Первая строка файла считается строкой-заголовком таблицы и игнорируется. Импорт идет до тех пор, пока не
-            в файле не встретитсяперва пустая строка.
+            в файле не встретится первая пустая строка. Лист с данными о товарах дожен иметь имя "data".
             Импортированые товары будут добавлены в текущий справочник.
         </p>
         <table class="content-table">
@@ -41,20 +41,21 @@
         const apiImportProductsURL = "/api/import_products/";
 
         $("#import-button").click(() => {
-            let $fileField = $("#file");
-            let file = $fileField.prop("files")[0];
+            let file = $("#file").prop("files")[0];
 
             let formData = new FormData();
             formData.append("uploaded_file", file);
 
             $.ajax(apiImportProductsURL, {
                 "method": "POST",
-                "dataType": "json",
                 "data": formData,
                 "processData": false,
                 "contentType": false,
-                "success": function (data) {
-                    console.log(data);
+                "success": function () {
+                    showMessage("Файл успешно импортирован");
+                },
+                "error": function (jqXHR) {
+                    showAjaxError(jqXHR);
                 }
             })
         });
