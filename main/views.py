@@ -1,15 +1,10 @@
-import os
 from django.urls import reverse_lazy
 from django.shortcuts import render
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.decorators import login_required
 from django.http.response import FileResponse
-from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment
-from openpyxl.utils import get_column_letter
-from io import BytesIO
 from .models import Product, Contractor, Token
-from utils import get_tmp_file_path, check_tmp_folder, model_to_xls
+from utils import model_to_xls
 
 
 class Login(LoginView):

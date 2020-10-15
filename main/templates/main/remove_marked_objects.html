@@ -12,12 +12,13 @@
     <script>
         const apiRemoveObjectsURL = "/api/remove_marked_objects/";
 
+        let $contentDiv = $("#content-div");
+
         $.ajax(apiRemoveObjectsURL, {
             "method": "POST",
             "dataType": "json",
             "success": function (data) {
-                $("#content-div").empty();
-                let $contentDiv = $("#content-div");
+                $contentDiv.empty();
 
                 let successList, failList, $successList, $failList, $reportBlock;
                 for (let deleteDescription of data) {
@@ -49,7 +50,8 @@
                 }
             },
             "error": function (jqXHR) {
-                showAjaxError(jqXHR)
+                $contentDiv.empty();
+                showAjaxError(jqXHR);
             }
         })
 

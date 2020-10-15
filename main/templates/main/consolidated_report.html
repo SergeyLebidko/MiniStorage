@@ -11,14 +11,44 @@
 {% block scripts %}
     <script>
         const apiConsolidatedReportURL = "/api/consolidated_report/";
+        let reportsDescriptions = [
+            {
+                key: "product_count",
+                description: "Общее количество наименований товаров в справочнике"
+            },
+            {
+                key: "contractor_count",
+                description: "Общее количество наименований контрагентов в справочнике"
+            },
+            {
+                key: "storage_item_count",
+                description: "Общее количество наименований товаров на складе"
+            },
+            {
+                key: 'total_cost',
+                description: "Общая стоимость товаров на складе"
+            }
+        ]
+
+        let $contentDiv = $("#content-div");
 
         $.ajax(apiConsolidatedReportURL, {
             "method": "GET",
             "dataType": "json",
             "success": function (data) {
-                //TODO Код вывода данных отчета
+                $contentDiv.empty();
+
+                for (let {key, description} of reportsDescriptions) {
+                    $contentDiv.append(
+                        $("<p>")
+                            .addClass("report-block")
+                            .append($("<strong>").text(description + ": "))
+                            .append($("<span>").text(data[key]))
+                    );
+                }
             },
             "error": function (jqXHR) {
+                $contentDiv.empty();
                 showAjaxError(jqXHR);
             }
         });

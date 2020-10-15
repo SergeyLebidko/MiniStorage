@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db.models.query_utils import DeferredAttribute
 from django.db.models.deletion import ProtectedError
+from django.db.models import Sum, F
 
 from utils import get_username_for_operation, apply_expense_document, apply_receipt_document, unapply_receipt_document, \
     unapply_expense_document
@@ -375,9 +376,17 @@ def import_products(request):
 def consolidated_report(request):
     product_count = Product.objects.count()
     contractor_count = Contractor.objects.count()
+    storage_item_count = StorageItem.objects.count()
+
+    product_count_field = F('count')
+    product_price_field = F('product__price')
+
+    total_cost = StorageItem.objects.aggregate(tc=Sum(product_count_field * product_price_field))['tc']
 
     data = {
         'product_count': product_count,
-        'contractor_count': contractor_count
+        'contractor_count': contractor_count,
+        'storage_item_count': storage_item_count,
+        'total_cost': total_cost
     }
     return Response(data=data, status=status.HTTP_200_OK)
