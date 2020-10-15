@@ -67,6 +67,11 @@
                     <ul>
                         <li>
                             <span>
+                                <a href="{% url 'main:consolidated_report' %}">Сводный отчет по базе данных</a>
+                            </span>
+                        </li>
+                        <li>
+                            <span>
                                 <a href="{% url 'main:products_to_xls' %}">Список товаров (XLS)</a>
                             </span>
                         </li>
@@ -93,12 +98,18 @@
                             </li>
                             <li>
                                 <span>
-                                    <a href="{% url 'main:storage_items' %}">Управление остатками</a>
+                                    <a href="{% url 'main:import_products' %}">Импорт товаров</a>
                                 </span>
                             </li>
                             <li>
                                 <span>
-                                    <a href="{% url 'main:import_products' %}">Импорт товаров</a>
+                                    <a href="{% url 'main:storage_items' %}">Управление остатками</a>
+                                </span>
+                            </li>
+                        {% else %}
+                            <li>
+                                <span>
+                                    <a href="{% url 'main:storage_items' %}">Просмотр остатков</a>
                                 </span>
                             </li>
                         {% endif %}

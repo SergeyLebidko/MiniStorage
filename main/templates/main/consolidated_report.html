@@ -1,0 +1,26 @@
+{% extends 'main/index.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="basic-div content-div"><strong>Сводный отчет по базе данных</strong></div>
+    <div class="basic-div content-div" id="content-div">
+        <p>Отправляю запрос на формирование отчета...</p>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        const apiConsolidatedReportURL = "/api/consolidated_report/";
+
+        $.ajax(apiConsolidatedReportURL, {
+            "method": "GET",
+            "dataType": "json",
+            "success": function (data) {
+                //TODO Код вывода данных отчета
+            },
+            "error": function (jqXHR) {
+                showAjaxError(jqXHR);
+            }
+        });
+    </script>
+{% endblock %}

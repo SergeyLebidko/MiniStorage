@@ -367,3 +367,17 @@ def import_products(request):
         os.remove(path)
 
     return Response(status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def consolidated_report(request):
+    product_count = Product.objects.count()
+    contractor_count = Contractor.objects.count()
+
+    data = {
+        'product_count': product_count,
+        'contractor_count': contractor_count
+    }
+    return Response(data=data, status=status.HTTP_200_OK)

@@ -23,7 +23,7 @@ class Login(LoginView):
 
 
 class Logout(LogoutView):
-    next_page = reverse_lazy('index')
+    next_page = reverse_lazy('main:index')
 
 
 @login_required(login_url='login')
@@ -102,3 +102,8 @@ def remove_marked_objects(request):
 @login_required(login_url='login')
 def import_products(request):
     return render(request, 'main/import_products.html', context={})
+
+
+@login_required(login_url='login')
+def consolidated_report(request):
+    return render(request, 'main/consolidated_report.html', context={})

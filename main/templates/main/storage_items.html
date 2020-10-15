@@ -65,6 +65,7 @@
     <script>
         const apiURL = "/api/storage_items/";
         const apiProductsURL = "/api/products/";
+        const isSuperuser = "{{ user.is_superuser }}" === "True" ? true : false;
 
         function showStorageItems(url) {
             $.ajax(url, {
@@ -97,7 +98,13 @@
                         $tableRow.data("storageItem", storageItem);
                         $contentTable.append($tableRow);
                     }
-                    $contentTable.on("click", "tr:not(:first-child)", storageItemEdit);
+                    if (isSuperuser) {
+                        $contentTable.on("click", "tr:not(:first-child)", storageItemEdit);
+                    } else {
+                        $contentTable.on("click", "tr:not(:first-child)", () => {
+                            showMessage("Редактирование остатков разрешено только администратору");
+                        });
+                    }
 
                     createPaginationButtons(prevPage, nextPage, showStorageItems);
                 },
@@ -183,61 +190,66 @@
             storageItemsSearch();
             $("#search-p-result-div").hide();
         });
-        $("#show-si-append-div-button").click(() => {
-            let buttonText = $("#show-si-append-div-button").text();
-            buttonText = buttonText === "-" ? "+" : "-";
-            $("#show-si-append-div-button").text(buttonText);
-            $("#si-append-div").slideToggle("normal");
-            $("#search-p-result-div").hide();
-        });
 
-        //Обработчики событий панели добавления остатков
-        $("#search-p-button").click(() => {
-            let searchString = $("#search-p-field").val();
-            if (!searchString) {
-                return;
-            }
+        if (isSuperuser) {
+            $("#show-si-append-div-button").click(() => {
+                let buttonText = $("#show-si-append-div-button").text();
+                buttonText = buttonText === "-" ? "+" : "-";
+                $("#show-si-append-div-button").text(buttonText);
+                $("#si-append-div").slideToggle("normal");
+                $("#search-p-result-div").hide();
+            });
 
-            let $resultDiv = $("#search-p-result-div");
-            $resultDiv.empty();
-            $resultDiv.slideDown("normal");
-
-            downloadProductsList(`${apiProductsURL}?search=${searchString}`);
-        });
-        $("#search-p-result-div").scroll(scrollProductsList);
-        $("#clear-search-p-field-button").click(() => {
-            $("#search-p-field").val("");
-            $("#search-p-result-div").slideUp("normal");
-        });
-        $("#search-p-result-div").click((event) => {
-            let product = $(event.target).data("element")
-            if (!product) {
-                return;
-            }
-            $("#search-p-result-div").slideUp();
-
-            $.ajax(apiURL, {
-                "method": "POST",
-                "dataType": "json",
-                "data": {
-                    "product": product.id,
-                    "count": 1
-                },
-                "success": function (data) {
-                    $("#search-si-field").val(data.id);
-                    showStorageItems(`${apiURL}${data.id}`);
-                },
-                "error": function (jqXHR) {
-                    showAjaxError(jqXHR);
+            //Обработчики событий панели добавления остатков
+            $("#search-p-button").click(() => {
+                let searchString = $("#search-p-field").val();
+                if (!searchString) {
+                    return;
                 }
-            })
-        });
+
+                let $resultDiv = $("#search-p-result-div");
+                $resultDiv.empty();
+                $resultDiv.slideDown("normal");
+
+                downloadProductsList(`${apiProductsURL}?search=${searchString}`);
+            });
+            $("#search-p-result-div").scroll(scrollProductsList);
+            $("#clear-search-p-field-button").click(() => {
+                $("#search-p-field").val("");
+                $("#search-p-result-div").slideUp("normal");
+            });
+            $("#search-p-result-div").click((event) => {
+                let product = $(event.target).data("element")
+                if (!product) {
+                    return;
+                }
+                $("#search-p-result-div").slideUp();
+
+                $.ajax(apiURL, {
+                    "method": "POST",
+                    "dataType": "json",
+                    "data": {
+                        "product": product.id,
+                        "count": 1
+                    },
+                    "success": function (data) {
+                        $("#search-si-field").val(data.id);
+                        showStorageItems(`${apiURL}${data.id}`);
+                    },
+                    "error": function (jqXHR) {
+                        showAjaxError(jqXHR);
+                    }
+                })
+            });
+
+            //Обработчики событий кнопок закрытия модального окна
+            $("#si-close-button, #si-cancel-button").click(() => closeModal($("#si-editor")));
+        } else {
+            $("#show-si-append-div-button").hide();
+        }
 
         //Обработчик события клика по заголовку столбца (сортировка)
         $("#content-table th").click(storageItemSort);
-
-        //Обработчики событий модального окна
-        $("#si-close-button, #si-cancel-button").click(() => closeModal($("#si-editor")));
 
         showStorageItems(apiURL);
     </script>
