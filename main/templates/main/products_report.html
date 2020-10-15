@@ -13,7 +13,7 @@
             до: <input type="date" name="dt-end" id="dt-end">
             <span class="span-button" id="generate-report">Сформировать</span>
         </div>
-        <table class="content-table">
+        <table class="content-table" id="content-table">
             <tr>
                 <th rowspan="2">Наименование</th>
                 <th colspan="2">Приход</th>
@@ -39,10 +39,21 @@
                 "dataType": "json",
                 "data": {
                     "dt_start": $("#dt-start").val(),
-                    "dt_end": $("dt-end").val()
+                    "dt_end": $("#dt-end").val()
                 },
                 "success": function (data) {
                     console.log(data);
+                    let $contentTable = $("#content-table");
+                    let $row;
+                    for (let element of data) {
+                        $row = $("<tr>");
+                        $row.append($("<td>").text(element.product_title));
+                        $row.append($("<td>").text(element.receipt_count));
+                        $row.append($("<td>").text(element.receipt_sum));
+                        $row.append($("<td>").text(element.expense_count));
+                        $row.append($("<td>").text(element.expense_sum));
+                        $contentTable.append($row);
+                    }
                 },
                 "error": function (jqXHR) {
                     showAjaxError(jqXHR);

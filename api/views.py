@@ -417,10 +417,8 @@ def products_report(request):
     ).order_by(
         'product_id'
     ).annotate(
-        tc=Sum('count'),
-        ts=Sum(F('count') * F('product__price'))
-    ).order_by(
-        'product__title'
+        total_count=Sum('count'),
+        total_sum=Sum(F('count') * F('product__price'))
     )
 
     # Итоги по расходным документам
@@ -430,10 +428,47 @@ def products_report(request):
     ).order_by(
         'product_id'
     ).annotate(
-        tc=Sum('count'),
-        ts=Sum(F('count') * F('product__price'))
-    ).order_by(
-        'product__title'
+        total_count=Sum('count'),
+        total_sum=Sum(F('count') * F('product__price'))
     )
 
-    return Response(data={'result': 'Success!'}, status=status.HTTP_200_OK)
+    # Получаем идентификаторы всех товаров из отчета
+    product_ids = set([e['product_id'] for e in receipt_items] + [e['product_id'] for e in expense_items])
+
+    result = []
+    for product_id in product_ids:
+        product_title = None
+        receipt_count, receipt_sum, expense_count, expense_sum = 0, 0, 0, 0
+
+        # Ищем товар с текущим идентификатором в списке приходных записей
+        for item in receipt_items:
+            if item['product_id'] == product_id:
+                receipt_count = item['total_count']
+                receipt_sum = item['total_sum']
+                if not product_title:
+                    product_title = item['product__title']
+                break
+
+        # Ищем товар с текущим идентификатором в списке расходных записей
+        for item in expense_items:
+            if item['product_id'] == product_id:
+                expense_count = item['total_count']
+                expense_sum = item['total_sum']
+                if not product_title:
+                    product_title = item['product__title']
+                break
+
+        result.append(
+            {
+                'product_id': product_id,
+                'product_title': product_title,
+                'receipt_count': receipt_count,
+                'receipt_sum': receipt_sum,
+                'expense_count': expense_count,
+                'expense_sum': expense_sum
+            }
+        )
+
+    result.sort(key=lambda x: x['product_title'])
+
+    return Response(data=result, status=status.HTTP_200_OK)
