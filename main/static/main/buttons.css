@@ -25,6 +25,10 @@ input[type=submit]:hover, input[type=submit]:focus {
     background: RGB(80, 75, 200);
 }
 
+.span-button:active {
+    background: RGB(80, 75, 255);
+}
+
 .anchor-button {
     text-decoration: none;
     background-color: RGB(150, 150, 150);

@@ -390,3 +390,50 @@ def consolidated_report(request):
         'total_cost': total_cost
     }
     return Response(data=data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def products_report(request):
+    documents = Document.objects.prefetch_related('documentitem_set').filter(apply_flag=True)
+
+    dt_start = request.query_params.get('dt_start')
+    if dt_start:
+        documents = documents.filter(dt_updated__gte=dt_start)
+    dt_end = request.query_params.get('dt_end')
+    if dt_end:
+        dt_end += ' 23:59:59'
+        documents = documents.filter(dt_updated__lte=dt_end)
+
+    document_items = DocumentItem.objects.filter(document__in=documents)
+    receipt_items = document_items.filter(document__destination_type=Document.RECEIPT)
+    expense_items = document_items.filter(document__destination_type=Document.EXPENSE)
+
+    # Итоги по приходным документам
+    receipt_items = receipt_items.values(
+        'product_id',
+        'product__title',
+    ).order_by(
+        'product_id'
+    ).annotate(
+        tc=Sum('count'),
+        ts=Sum(F('count') * F('product__price'))
+    ).order_by(
+        'product__title'
+    )
+
+    # Итоги по расходным документам
+    expense_items = expense_items.values(
+        'product_id',
+        'product__title',
+    ).order_by(
+        'product_id'
+    ).annotate(
+        tc=Sum('count'),
+        ts=Sum(F('count') * F('product__price'))
+    ).order_by(
+        'product__title'
+    )
+
+    return Response(data={'result': 'Success!'}, status=status.HTTP_200_OK)

@@ -1,0 +1,53 @@
+{% extends 'main/index.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="basic-div content-div"><strong>Отчет по движению товаров</strong></div>
+    <div class="basic-div content-div" id="content-div">
+        <div class="operation-div">
+            <p>
+                Отчет формируется на основе проведенных документов.
+            </p>
+            Дата проведения:
+            от: <input type="date" name="dt-start" id="dt-start">
+            до: <input type="date" name="dt-end" id="dt-end">
+            <span class="span-button" id="generate-report">Сформировать</span>
+        </div>
+        <table class="content-table">
+            <tr>
+                <th rowspan="2">Наименование</th>
+                <th colspan="2">Приход</th>
+                <th colspan="2">Расход</th>
+            </tr>
+            <tr>
+                <th>Штук</th>
+                <th>На сумму</th>
+                <th>Штук</th>
+                <th>На сумму</th>
+            </tr>
+        </table>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        const apiProductsReportURL = "/api/products_report/";
+
+        $("#generate-report").click(() => {
+            $.ajax(apiProductsReportURL, {
+                "method": "GET",
+                "dataType": "json",
+                "data": {
+                    "dt_start": $("#dt-start").val(),
+                    "dt_end": $("dt-end").val()
+                },
+                "success": function (data) {
+                    console.log(data);
+                },
+                "error": function (jqXHR) {
+                    showAjaxError(jqXHR);
+                }
+            });
+        });
+    </script>
+{% endblock scripts %}

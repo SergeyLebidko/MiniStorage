@@ -102,3 +102,8 @@ def import_products(request):
 @login_required(login_url='login')
 def consolidated_report(request):
     return render(request, 'main/consolidated_report.html', context={})
+
+
+@login_required(login_url='login')
+def products_report(request):
+    return render(request, 'main/products_report.html', context={})
