@@ -72,7 +72,12 @@
                         </li>
                         <li>
                             <span>
-                                <a href="{% url 'main:products_report' %}">Отчет по движению товаров</a>
+                                <a href="{% url 'main:motion_report' %}?report_type=products">Отчет по движениям товаров</a>
+                            </span>
+                        </li>
+                        <li>
+                            <span>
+                                <a href="{% url 'main:motion_report' %}?report_type=contractors">Отчет по операциям с контрагентами</a>
                             </span>
                         </li>
                         <li>

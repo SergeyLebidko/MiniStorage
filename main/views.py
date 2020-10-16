@@ -105,5 +105,6 @@ def consolidated_report(request):
 
 
 @login_required(login_url='login')
-def products_report(request):
-    return render(request, 'main/products_report.html', context={})
+def motion_report(request):
+    report_type = request.GET['report_type']
+    return render(request, 'main/motion_report.html', context={'report_type': report_type})

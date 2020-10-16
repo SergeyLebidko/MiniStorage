@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import index, products, contractors, documents, operations, storage_items, products_to_xls, \
-    contractors_to_xls, remove_marked_objects, import_products, consolidated_report, products_report
+    contractors_to_xls, remove_marked_objects, import_products, consolidated_report, motion_report
 
 app_name = 'main'
 
@@ -16,5 +16,5 @@ urlpatterns = [
     path('remove_marked_objects/', remove_marked_objects, name='remove_marked_objects'),
     path('import_products/', import_products, name='import_products'),
     path('consolidated_report/', consolidated_report, name='consolidated_report'),
-    path('products_report/', products_report, name='products_report')
+    path('motion_report/', motion_report, name='motion_report')
 ]

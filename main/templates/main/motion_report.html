@@ -17,11 +17,12 @@
             <p>
                 <span class="span-button" id="clear-params-button">Очистить фильтры</span>
             </p>
+            <input type="hidden" name="report_type" id="report_type" value="{{ report_type }}">
         </div>
         <table class="content-table" id="content-table">
             <tr>
-                <th rowspan="2" column-key="product_id" display-name="Номер">Номер</th>
-                <th rowspan="2" column-key="product_title" display-name="Наименование">Наименование</th>
+                <th rowspan="2" column-key="id" display-name="Номер">Номер</th>
+                <th rowspan="2" column-key="title" display-name="Наименование">Наименование</th>
                 <th colspan="2">Приход</th>
                 <th colspan="2">Расход</th>
             </tr>
@@ -41,10 +42,11 @@
 
 {% block scripts %}
     <script>
-        const apiProductsReportURL = "/api/products_report/";
+        const apiProductsReportURL = "/api/motion_report/";
 
         function getSearchParams() {
             return $.param({
+                "report_type": $("#report_type").val(),
                 "dt_start": $("#dt-start").val(),
                 "dt_end": $("#dt-end").val(),
                 "search": $("#search-field").val()
@@ -66,8 +68,8 @@
                     let $row;
                     for (let element of reportData) {
                         $row = $("<tr>");
-                        $row.append($("<td>").text(element.product_id));
-                        $row.append($("<td>").text(element.product_title));
+                        $row.append($("<td>").text(element.id));
+                        $row.append($("<td>").text(element.title));
                         $row.append($("<td>").text(element.receipt_count));
                         $row.append($("<td>").text(element.receipt_sum));
                         $row.append($("<td>").text(element.expense_count));
