@@ -75,6 +75,7 @@
                         $row.append($("<td>").text(element.expense_count));
                         $row.append($("<td>").text(element.expense_sum));
                         $row.data("element", element);
+                        $row.click(showSubReport);
                         $contentTable.append($row);
                     }
 
@@ -89,6 +90,12 @@
                     showAjaxError(jqXHR);
                 }
             });
+        }
+
+        function showSubReport() {
+            let $this = $(this);
+            console.log($this.data("element"));
+            alert("Функциональность пока не реализвана");
         }
 
         let sortFunction = getSortFunction(showReport, getSearchParams, apiProductsReportURL);
