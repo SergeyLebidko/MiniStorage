@@ -1,4 +1,5 @@
 import os
+import math
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -7,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db.models.query_utils import DeferredAttribute
 from django.db.models.deletion import ProtectedError
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Q
 
 from utils import get_username_for_operation, apply_expense_document, apply_receipt_document, unapply_receipt_document, \
     unapply_expense_document
@@ -407,6 +408,15 @@ def products_report(request):
         documents = documents.filter(dt_updated__lte=dt_end)
 
     document_items = DocumentItem.objects.filter(document__in=documents)
+    search_param = request.query_params.get('search')
+    if search_param:
+        if search_param.isdigit():
+            document_items = document_items.filter(
+                Q(product_id=search_param) | Q(product__title__icontains=search_param)
+            )
+        else:
+            document_items = document_items.filter(product__title__icontains=search_param)
+
     receipt_items = document_items.filter(document__destination_type=Document.RECEIPT)
     expense_items = document_items.filter(document__destination_type=Document.EXPENSE)
 
@@ -435,7 +445,7 @@ def products_report(request):
     # Получаем идентификаторы всех товаров из отчета
     product_ids = set([e['product_id'] for e in receipt_items] + [e['product_id'] for e in expense_items])
 
-    result = []
+    result_data = []
     for product_id in product_ids:
         product_title = None
         receipt_count, receipt_sum, expense_count, expense_sum = 0, 0, 0, 0
@@ -458,7 +468,7 @@ def products_report(request):
                     product_title = item['product__title']
                 break
 
-        result.append(
+        result_data.append(
             {
                 'product_id': product_id,
                 'product_title': product_title,
@@ -469,6 +479,33 @@ def products_report(request):
             }
         )
 
-    result.sort(key=lambda x: x['product_title'])
+    # Реализуем сортировку
+    result_data.sort(key=lambda x: x['product_title'])
 
-    return Response(data=result, status=status.HTTP_200_OK)
+    # Реализуем пагинацию
+    full_path = request.build_absolute_uri()
+    if full_path[-1] == '/':
+        full_path += '?'
+    else:
+        full_path += '&'
+
+    page_size = CustomPagination.page_size
+    page_count = math.ceil(len(result_data) / page_size)
+
+    page = request.query_params.get('page')
+    if not page:
+        page = 1
+    else:
+        page = int(page)
+
+    begin_index = (page - 1) * page_size
+    end_index = begin_index + page_size
+
+    result_with_paginate = {
+        'count': len(result_data),
+        'next': None if page == page_count else f'{full_path}page={page + 1}',
+        'previous': None if page == 1 else f'{full_path}page={page - 1}',
+        'results': result_data[begin_index:end_index]
+    }
+
+    return Response(data=result_with_paginate, status=status.HTTP_200_OK)

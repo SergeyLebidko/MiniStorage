@@ -11,10 +11,13 @@
             Дата проведения:
             от: <input type="date" name="dt-start" id="dt-start">
             до: <input type="date" name="dt-end" id="dt-end">
-            <span class="span-button" id="generate-report">Сформировать</span>
+            <input type="text" name="search-field" id="search-field">
+            <span class="span-button" id="clear-params-button">Очистить</span>
+            <span class="span-button" id="generate-report-button">Сформировать</span>
         </div>
         <table class="content-table" id="content-table">
             <tr>
+                <th rowspan="2">Номер</th>
                 <th rowspan="2">Наименование</th>
                 <th colspan="2">Приход</th>
                 <th colspan="2">Расход</th>
@@ -26,6 +29,10 @@
                 <th>На сумму</th>
             </tr>
         </table>
+        <div class="navigation-div" id="navigation-div" style="display: none">
+            <span class="span-button" id="prev-page-button">Предыдущая страница</span>
+            <span class="span-button" id="next-page-button">Следующая страница</span>
+        </div>
     </div>
 {% endblock %}
 
@@ -33,32 +40,59 @@
     <script>
         const apiProductsReportURL = "/api/products_report/";
 
-        $("#generate-report").click(() => {
-            $.ajax(apiProductsReportURL, {
+        function getSearchParams() {
+            return $.param({
+                "dt_start": $("#dt-start").val(),
+                "dt_end": $("#dt-end").val(),
+                "search": $("#search-field").val()
+            });
+        }
+
+        function showReport(url) {
+            $.ajax(url, {
                 "method": "GET",
                 "dataType": "json",
-                "data": {
-                    "dt_start": $("#dt-start").val(),
-                    "dt_end": $("#dt-end").val()
-                },
                 "success": function (data) {
-                    console.log(data);
                     let $contentTable = $("#content-table");
+                    $("tr", $contentTable).slice(2).remove();
+
+                    let reportData, nextPage, prevPage;
+                    reportData = data.results;
+                    nextPage = data.next;
+                    prevPage = data.previous;
                     let $row;
-                    for (let element of data) {
+                    for (let element of reportData) {
                         $row = $("<tr>");
+                        $row.append($("<td>").text(element.product_id));
                         $row.append($("<td>").text(element.product_title));
                         $row.append($("<td>").text(element.receipt_count));
                         $row.append($("<td>").text(element.receipt_sum));
                         $row.append($("<td>").text(element.expense_count));
                         $row.append($("<td>").text(element.expense_sum));
+                        $row.data("element", element);
                         $contentTable.append($row);
                     }
+
+                    if (nextPage || prevPage) {
+                        $("#navigation-div").show();
+                    } else {
+                        $("#navigation-div").hide();
+                    }
+                    createPaginationButtons(prevPage, nextPage, showReport);
                 },
                 "error": function (jqXHR) {
                     showAjaxError(jqXHR);
                 }
             });
+        }
+
+        $("#generate-report-button").click(() => {
+            showReport(`${apiProductsReportURL}?${getSearchParams()}`);
         });
+
+        $("#clear-params-button").click(() => {
+            $("#dt-start, #dt-end, #search-field").val("");
+        });
+
     </script>
 {% endblock scripts %}
