@@ -480,7 +480,15 @@ def products_report(request):
         )
 
     # Реализуем сортировку
-    result_data.sort(key=lambda x: x['product_title'])
+    reverse = False
+    order = request.query_params.get('order')
+    if order:
+        if order.startswith('-'):
+            reverse = True
+            order = order[1:]
+    else:
+        order = 'product_title'
+    result_data.sort(key=lambda x: x[order], reverse=reverse)
 
     # Реализуем пагинацию
     full_path = request.build_absolute_uri()
