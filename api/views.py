@@ -409,6 +409,11 @@ def motion_report(request):
         dt_end += ' 23:59:59'
         documents = documents.filter(dt_updated__lte=dt_end)
 
+    # Отбираем документы в зависимости от фильтра контрагентов
+    contractor = request.query_params.get('contractor')
+    if contractor:
+        documents = documents.filter(contractor_id=contractor)
+
     # Реализуем поиск товаров в документах в зависимости от типа запрошенного отчета
     document_items = DocumentItem.objects.filter(document__in=documents)
     search_param = request.query_params.get('search')
@@ -426,6 +431,11 @@ def motion_report(request):
             )
         else:
             document_items = document_items.filter(document__contractor__title__icontains=search_param)
+
+    # Реализуем фильтрацию по товарам
+    product = request.query_params.get('product')
+    if product:
+        document_items = document_items.filter(product_id=product)
 
     receipt_items = document_items.filter(document__destination_type=Document.RECEIPT)
     expense_items = document_items.filter(document__destination_type=Document.EXPENSE)
