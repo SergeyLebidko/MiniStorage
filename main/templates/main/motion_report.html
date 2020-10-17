@@ -103,9 +103,40 @@
         }
 
         function showSubReport() {
-            let $this = $(this);
-            console.log($this.data("element"));
-            alert("Функциональность пока не реализвана");
+            let element = $(this).data("element");
+
+            let dtStart = $("#dt-start").val();
+            let dtEnd = $("#dt-end").val();
+            let currentReportType = $("#report_type").val();
+            let queryParams;
+            if (currentReportType === "products") {
+                queryParams = $.param({
+                    "report_type": "contractors",
+                    "product": element.id,
+                    "dt_start": dtStart,
+                    "dt_end": dtEnd
+                });
+            }
+            if (currentReportType === "contractors") {
+                queryParams = $.param({
+                    "report_type": "products",
+                    "contractor": element.id,
+                    "dt_start": dtStart,
+                    "dt_end": dtEnd
+                });
+            }
+
+            $.ajax(apiProductsReportURL, {
+                "method": "GET",
+                "dataType": "json",
+                "data": queryParams,
+                "success": function (data) {
+                    console.log(data);
+                },
+                "error": function (jqXHR) {
+                    showAjaxError(jqXHR);
+                }
+            })
         }
 
         let sortFunction = getSortFunction(showReport, getSearchParams, apiProductsReportURL);
