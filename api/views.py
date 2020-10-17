@@ -459,9 +459,10 @@ def motion_report(request):
     ids_list = set(receipt_ids + expense_ids)
 
     result_data = []
+    total_receipt_count = total_receipt_sum = total_expense_count = total_expense_sum = 0
     for id_element in ids_list:
         title = None
-        receipt_count, receipt_sum, expense_count, expense_sum = 0, 0, 0, 0
+        receipt_count = receipt_sum = expense_count = expense_sum = 0
 
         # Ищем товар с текущим идентификатором в списке приходных записей
         for item in receipt_items:
@@ -481,6 +482,10 @@ def motion_report(request):
                     title = item[title_field]
                 break
 
+        total_receipt_count += receipt_count
+        total_receipt_sum += receipt_sum
+        total_expense_count += expense_count
+        total_expense_sum += expense_sum
         result_data.append(
             {
                 'id': id_element,
@@ -526,7 +531,13 @@ def motion_report(request):
         'count': len(result_data),
         'next': None if page == page_count else f'{full_path}page={page + 1}',
         'previous': None if page == 1 else f'{full_path}page={page - 1}',
-        'results': result_data[begin_index:end_index]
+        'results': result_data[begin_index:end_index],
+        'totals': {
+            'total_receipt_count': total_receipt_count,
+            'total_receipt_sum': total_receipt_sum,
+            'total_expense_count': total_expense_count,
+            'total_expense_sum': total_expense_sum
+        }
     }
 
     return Response(data=result_with_paginate, status=status.HTTP_200_OK)

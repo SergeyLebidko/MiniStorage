@@ -61,11 +61,21 @@
                     let $contentTable = $("#content-table");
                     $("tr", $contentTable).slice(2).remove();
 
-                    let reportData, nextPage, prevPage;
+                    let reportData, nextPage, prevPage, totals;
                     reportData = data.results;
                     nextPage = data.next;
                     prevPage = data.previous;
-                    let $row;
+                    totals = data.totals;
+
+                    let $row = $("<tr>");
+                    $row.append($("<th>"));
+                    $row.append($("<th>").text("ИТОГО:"));
+                    $row.append($("<th>").text(totals.total_receipt_count));
+                    $row.append($("<th>").text(totals.total_receipt_sum));
+                    $row.append($("<th>").text(totals.total_expense_count));
+                    $row.append($("<th>").text(totals.total_expense_sum));
+                    $contentTable.append($row);
+
                     for (let element of reportData) {
                         $row = $("<tr>");
                         $row.append($("<td>").text(element.id));
