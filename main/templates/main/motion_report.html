@@ -40,6 +40,31 @@
     </div>
 {% endblock %}
 
+{% block modals %}
+    <div class="modal" id="report-details-modal" style="display: none">
+        <div style="width: 700px; max-height: 600px; overflow: scroll">
+            <div class="modal-control-buttons">
+                <span class="span-button" id="modal-close-button">X</span>
+            </div>
+            <p id="report-details-element-title"></p>
+            <table class="content-table" id="report-details-content-table">
+                <tr>
+                    <th rowspan="2">Номер</th>
+                    <th rowspan="2">Наименование</th>
+                    <th colspan="2">Приход</th>
+                    <th colspan="2">Расход</th>
+                </tr>
+                <tr>
+                    <th>Штук</th>
+                    <th>На сумму</th>
+                    <th>Штук</th>
+                    <th>На сумму</th>
+                </tr>
+            </table>
+        </div>
+    </div>
+{% endblock modals %}
+
 {% block scripts %}
     <script>
         const apiProductsReportURL = "/api/motion_report/";
@@ -131,7 +156,24 @@
                 "dataType": "json",
                 "data": queryParams,
                 "success": function (data) {
-                    console.log(data);
+                    showModal($("#report-details-modal"));
+
+                    $("#report-details-element-title").text(element.title)
+
+                    let $contentTable = $("#report-details-content-table");
+                    $("tr", $contentTable).slice(2).remove();
+
+                    let $row;
+                    for (let dataElement of data.results) {
+                        $row = $("<tr>");
+                        $row.append($("<td>").text(dataElement.id));
+                        $row.append($("<td>").text(dataElement.title));
+                        $row.append($("<td>").text(dataElement.receipt_count));
+                        $row.append($("<td>").text(dataElement.receipt_sum));
+                        $row.append($("<td>").text(dataElement.expense_count));
+                        $row.append($("<td>").text(dataElement.expense_sum));
+                        $contentTable.append($row);
+                    }
                 },
                 "error": function (jqXHR) {
                     showAjaxError(jqXHR);
@@ -164,6 +206,10 @@
 
         $("#clear-params-button").click(() => {
             $("#dt-start, #dt-end, #search-field").val("");
+        });
+
+        $("#modal-close-button").click(() => {
+            closeModal($("#report-details-modal"));
         });
 
     </script>
