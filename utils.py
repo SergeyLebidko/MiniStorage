@@ -82,7 +82,7 @@ def apply_expense_document(document):
     storage_items = []
     for document_item in document_items:
         storage_item = StorageItem.objects.filter(product_id=document_item.product_id).first()
-        if not StorageItem:
+        if not storage_item:
             raise Exception(document_item.product.title)
         storage_item.count -= document_item.count
         if storage_item.count < 0:

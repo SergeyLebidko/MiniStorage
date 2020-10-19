@@ -47,8 +47,6 @@ class TestApi(TestCase):
     def setUp(self):
         self.client = client = APIClient()
         client.credentials(HTTP_AUTHORIZATION=TOKEN)
-        StorageItem.objects.all().delete()
-        Document.objects.all().delete()
 
     def test_apply_receipt_document(self):
         """Тестируем проведение приходного документа"""
@@ -97,3 +95,48 @@ class TestApi(TestCase):
         self.assertEqual(len(storage_items), items_count, 'Отмена проведения документа прошла некорректно')
         for storage_item in storage_items:
             self.assertEqual(storage_item.count, products_count, 'Отмена проведения документа прошла некорректно')
+
+    def test_apply_not_exist_document(self):
+        """Тестируем невозможность проведения несуществующего документа"""
+        url = reverse('api:apply_document', kwargs={'document_id': 1})
+        response = self.client.post(url)
+        msg = 'Удалось провести документ с некорректным номером'
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, msg)
+
+    def test_unapply_not_exist_document(self):
+        """Тестируем невозможность отмены проведения несуществующего документа"""
+        url = reverse('api:unapply_document', kwargs={'document_id': 1})
+        response = self.client.post(url)
+        msg = 'Удалось отменить проведение документа с некорректным номером'
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, msg)
+
+    def test_apply_applying_document(self):
+        """Тестируем невозможность проведения уже проведенного документа"""
+        document, *_ = create_document(Document.RECEIPT, True, True)
+        url = reverse('api:apply_document', kwargs={'document_id': document.pk})
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, 'Удалось провести уже проведенный документ')
+
+    def test_unapply_unapplying_document(self):
+        """Тестируем невозможность отмены проведения документа, который не является проведенным"""
+        document, *_ = create_document(Document.RECEIPT, False, True)
+        url = reverse('api:unapply_document', kwargs={'document_id': document.pk})
+        response = self.client.post(url)
+        msg = 'Удалось отменить проведение не проведенного документа'
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, msg)
+
+    def test_apply_incorrect_expense_document(self):
+        """Тестируем невозможность проведения некорректного расходного документа"""
+        document, *_ = create_document(Document.EXPENSE, False, False)
+        url = reverse('api:apply_document', kwargs={'document_id': document.pk})
+        response = self.client.post(url)
+        msg = 'Удалось провести расходный документ при отстутсвии товаров на складе'
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, msg)
+
+    def test_unapply_incorrect_receipt_document(self):
+        """Тестируем невозможность отмены проведения приходного документа при отсутствии товаров на складе"""
+        document, *_ = create_document(Document.RECEIPT, True, False)
+        url = reverse('api:unapply_document', kwargs={'document_id': document.pk})
+        response = self.client.post(url)
+        msg = 'Удалось отменить проведение приходного документа при отстутвии товаров на складе'
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, msg)
