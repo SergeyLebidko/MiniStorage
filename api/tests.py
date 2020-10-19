@@ -203,65 +203,78 @@ class TestApi(TestCase):
 
     def test_motion_report(self):
         """Тестируем корректность формирования отчета по движениям"""
+
+        def get_view_results(url):
+            rep_results = []
+            rep_totals = None
+            while url:
+                response = self.client.get(url)
+                rep_results.extend(response.json()['results'])
+                if not rep_totals:
+                    rep_totals = response.json()['totals']
+                url = response.json()['next']
+
+            return rep_results, rep_totals
+
+        def test_function(rep_results, rep_totals, comparison_func, res_msg, totals_msg):
+            document_items = DocumentItem.objects.select_related('document', 'product').all()
+            total_receipt_count = total_receipt_sum = total_expense_count = total_expense_sum = 0
+            for rep_result in rep_results:
+                pk = rep_result['id']
+                receipt_count = receipt_sum = expense_count = expense_sum = 0
+                for document_item in document_items:
+                    if comparison_func(document_item, pk):
+                        continue
+                    if document_item.document.destination_type == Document.RECEIPT:
+                        receipt_count += document_item.count
+                        receipt_sum += document_item.count * document_item.product.price
+                    if document_item.document.destination_type == Document.EXPENSE:
+                        expense_count += document_item.count
+                        expense_sum += document_item.count * document_item.product.price
+
+                expected_result = {
+                    'id': pk,
+                    'title': rep_result['title'],
+                    'receipt_count': receipt_count,
+                    'receipt_sum': receipt_sum,
+                    'expense_count': expense_count,
+                    'expense_sum': expense_sum
+                }
+                self.assertEqual(rep_result, expected_result, res_msg)
+
+                total_receipt_count += receipt_count
+                total_receipt_sum += receipt_sum
+                total_expense_count += expense_count
+                total_expense_sum += expense_sum
+
+            expected_totals = {
+                'total_receipt_count': total_receipt_count,
+                'total_receipt_sum': total_receipt_sum,
+                'total_expense_count': total_expense_count,
+                'total_expense_sum': total_expense_sum
+            }
+            self.assertEqual(rep_totals, expected_totals, totals_msg)
+
         for document_type in [Document.RECEIPT, Document.EXPENSE]:
             for _ in range(10):
                 create_document(document_type, True, False)
-        document_items = DocumentItem.objects.select_related('document', 'product').all()
 
-        url = reverse('api:motion_report') + '?report_type=products'
+        # Тестируем отчет по товарам
+        report_results, report_totals = get_view_results(reverse('api:motion_report') + '?report_type=products')
+        test_function(
+            report_results,
+            report_totals,
+            comparison_func=lambda document_item, pk: document_item.product_id != pk,
+            res_msg='Отчет по движению товаров не корректен',
+            totals_msg='Некорректные итоги в отчете по движению товаров'
+        )
 
-        report_results = []
-        while True:
-            response = self.client.get(url)
-            report_results.extend(response.json()['results'])
-            next_url = response.json()['next']
-            if not next_url:
-                break
-            url = next_url
-
-        # Удалить
-        import json
-        print(json.dumps(response.json(), indent=2, ensure_ascii=False, sort_keys=False))
-
-        report_totals = response.json()['totals']
-        total_receipt_count = total_receipt_sum = total_expense_count = total_expense_sum = 0
-
-        for report_result in report_results:
-            product_id = report_result['id']
-            receipt_count = receipt_sum = expense_count = expense_sum = 0
-            for document_item in document_items:
-                if document_item.product.pk != product_id:
-                    continue
-                if document_item.document.destination_type == Document.RECEIPT:
-                    receipt_count += document_item.count
-                    receipt_sum += document_item.count * document_item.product.price
-                if document_item.document.destination_type == Document.EXPENSE:
-                    expense_count += document_item.count
-                    expense_sum += document_item.count * document_item.product.price
-
-            expected_result = {
-                'id': product_id,
-                'title': report_result['title'],
-                'receipt_count': receipt_count,
-                'receipt_sum': receipt_sum,
-                'expense_count': expense_count,
-                'expense_sum': expense_sum
-            }
-            self.assertEqual(report_result, expected_result, 'Отчет по движению товаров не корректен')
-
-            total_receipt_count += receipt_count
-            total_receipt_sum += receipt_sum
-            total_expense_count += expense_count
-            total_expense_sum += expense_sum
-
-        expected_totals = {
-            'total_receipt_count': total_receipt_count,
-            'total_receipt_sum': total_receipt_sum,
-            'total_expense_count': total_expense_count,
-            'total_expense_sum': total_expense_sum
-        }
-        self.assertEqual(report_totals, expected_totals, 'Некорректные итоги в отчете по движению товаров')
-
-        # -------------------------------------------------------------------------------------------------
-        # url = reverse('api:motion_report')
-        # response = self.client.get(url + '?report_type=contractors')
+        # Тестируем отчет по операциям с контрагентами
+        report_results, report_totals = get_view_results(reverse('api:motion_report') + '?report_type=contractors')
+        test_function(
+            report_results,
+            report_totals,
+            comparison_func=lambda document_item, pk: document_item.document.contractor_id != pk,
+            res_msg='Отчет по движению контрагентов не корректен',
+            totals_msg='Некорректные итоги в отчете по движению контрагентов'
+        )
