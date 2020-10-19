@@ -9,11 +9,11 @@ from main.models import Token, Product, Contractor, Document, DocumentItem, Stor
 
 TOKEN = 'token'
 BASE_PRICE = 1000
+BASE_COUNT = 100
 
 
 def create_products_and_contractors():
-    # Добавляем в базу товары и контрагентов
-    for index in range(100):
+    for index in range(BASE_COUNT):
         Product.objects.create(title=f'Товар {index}', price=BASE_PRICE)
         Contractor.objects.create(title=f'Контрагент {index}', category=random.choice(Contractor.CONTRACTOR_CATEGORY))
 
@@ -140,3 +140,128 @@ class TestApi(TestCase):
         response = self.client.post(url)
         msg = 'Удалось отменить проведение приходного документа при отстутвии товаров на складе'
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, msg)
+
+    def test_remove_markup_object(self):
+        """Тестируем удаление помеченных объектов"""
+        document, items_count, _ = create_document(Document.RECEIPT, False, True)
+
+        # Помечаем объекты на удаление
+        document.to_remove = True
+        document.save()
+        StorageItem.objects.all().update(to_remove=True)
+        products_ids = DocumentItem.objects.values_list('product_id', flat=True)
+        Product.objects.filter(id__in=products_ids).update(to_remove=True)
+
+        document.contractor.to_remove = True
+        document.contractor.save()
+
+        url = reverse('api:remove_marked_objects')
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'Некорректный http-статус объекта')
+
+        # Проверяем, действиетельно ли объекты были удалены
+        document_items_count = DocumentItem.objects.count()
+        self.assertEqual(document_items_count, 0, 'Товары в документе, помеченном на удаление не были удалены')
+
+        documents_count = Document.objects.count()
+        self.assertEqual(documents_count, 0, 'Помеченный на удаление документ не был удален')
+
+        storage_items_count = StorageItem.objects.count()
+        self.assertEqual(storage_items_count, 0, 'Помеченные на удаление остатки на складе не были удалены')
+
+        contractors_count = Contractor.objects.count()
+        self.assertEqual(contractors_count, BASE_COUNT - 1, 'Помеченный на удаление контрагент не был удален')
+
+        products_count = Product.objects.count()
+        self.assertEqual(products_count, BASE_COUNT - items_count, 'Помеченные на удаление товары не были удалены')
+
+    def test_impossibility_remove_markup_objects(self):
+        """Тестируем невозможность удаления объектов, на которые есть ссылки"""
+        document, *_ = create_document(Document.RECEIPT, True, True)
+
+        document.contractor.to_remove = True
+        document.contractor.save()
+
+        products_ids = DocumentItem.objects.values_list('product_id', flat=True)
+        products_to_remove = Product.objects.filter(id__in=products_ids)
+        products_to_remove.update(to_remove=True)
+
+        url = reverse('api:remove_marked_objects')
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'Некорректный http-статус объекта')
+
+        products_count = Product.objects.count()
+        contractors_count = Contractor.objects.count()
+
+        msg = 'Помеченные на удаление товары были удалены, хотя на них были ссылки'
+        self.assertEqual(products_count, BASE_COUNT, msg)
+
+        msg = 'Помеченные на удаление контрагенты были удалены, хотя на них есть ссылки'
+        self.assertEqual(contractors_count, BASE_COUNT, msg)
+
+    def test_motion_report(self):
+        """Тестируем корректность формирования отчета по движениям"""
+        for document_type in [Document.RECEIPT, Document.EXPENSE]:
+            for _ in range(10):
+                create_document(document_type, True, False)
+        document_items = DocumentItem.objects.select_related('document', 'product').all()
+
+        url = reverse('api:motion_report') + '?report_type=products'
+
+        report_results = []
+        while True:
+            response = self.client.get(url)
+            report_results.extend(response.json()['results'])
+            next_url = response.json()['next']
+            if not next_url:
+                break
+            url = next_url
+
+        # Удалить
+        import json
+        print(json.dumps(response.json(), indent=2, ensure_ascii=False, sort_keys=False))
+
+        report_totals = response.json()['totals']
+        total_receipt_count = total_receipt_sum = total_expense_count = total_expense_sum = 0
+
+        for report_result in report_results:
+            product_id = report_result['id']
+            receipt_count = receipt_sum = expense_count = expense_sum = 0
+            for document_item in document_items:
+                if document_item.product.pk != product_id:
+                    continue
+                if document_item.document.destination_type == Document.RECEIPT:
+                    receipt_count += document_item.count
+                    receipt_sum += document_item.count * document_item.product.price
+                if document_item.document.destination_type == Document.EXPENSE:
+                    expense_count += document_item.count
+                    expense_sum += document_item.count * document_item.product.price
+
+            expected_result = {
+                'id': product_id,
+                'title': report_result['title'],
+                'receipt_count': receipt_count,
+                'receipt_sum': receipt_sum,
+                'expense_count': expense_count,
+                'expense_sum': expense_sum
+            }
+            self.assertEqual(report_result, expected_result, 'Отчет по движению товаров не корректен')
+
+            total_receipt_count += receipt_count
+            total_receipt_sum += receipt_sum
+            total_expense_count += expense_count
+            total_expense_sum += expense_sum
+
+        expected_totals = {
+            'total_receipt_count': total_receipt_count,
+            'total_receipt_sum': total_receipt_sum,
+            'total_expense_count': total_expense_count,
+            'total_expense_sum': total_expense_sum
+        }
+        self.assertEqual(report_totals, expected_totals, 'Некорректные итоги в отчете по движению товаров')
+
+        # -------------------------------------------------------------------------------------------------
+        # url = reverse('api:motion_report')
+        # response = self.client.get(url + '?report_type=contractors')
