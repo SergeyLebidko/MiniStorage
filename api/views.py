@@ -180,6 +180,8 @@ class DocumentViewSet(RegisteredViewSet):
             queryset = queryset.filter(destination_type=destination_type)
         apply_flag = self.request.query_params.get('apply_flag')
         if apply_flag:
+            apply_flag = apply_flag.lower()
+            apply_flag = {'true': True, 'false': False}[apply_flag]
             queryset = queryset.filter(apply_flag=apply_flag)
 
         return queryset

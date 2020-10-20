@@ -21,16 +21,16 @@
         </div>
         <table class="content-table" id="content-table">
             <tr>
-                <th rowspan="2" column-key="id" display-name="Номер">Номер</th>
-                <th rowspan="2" column-key="title" display-name="Наименование">Наименование</th>
+                <th rowspan="2" class="sorted-column" column-key="id" display-name="Номер">Номер</th>
+                <th rowspan="2" class="sorted-column" column-key="title" display-name="Наименование">Наименование</th>
                 <th colspan="2">Приход</th>
                 <th colspan="2">Расход</th>
             </tr>
             <tr>
-                <th column-key="receipt_count" display-name="Штук">Штук</th>
-                <th column-key="receipt_sum" display-name="На сумму">На сумму</th>
-                <th column-key="expense_count" display-name="Штук">Штук</th>
-                <th column-key="expense_sum" display-name="На сумму">На сумму</th>
+                <th class="sorted-column" column-key="receipt_count" display-name="Штук">Штук</th>
+                <th class="sorted-column" column-key="receipt_sum" display-name="На сумму">На сумму</th>
+                <th class="sorted-column" column-key="expense_count" display-name="Штук">Штук</th>
+                <th class="sorted-column" column-key="expense_sum" display-name="На сумму">На сумму</th>
             </tr>
         </table>
         <div class="navigation-div" id="navigation-div" style="display: none">
@@ -191,7 +191,7 @@
             showReport(`${apiProductsReportURL}?${getSearchParams()}`);
         });
 
-        $("th[column-key]").click(sortFunction);
+        $("#content-table th[column-key]").click(sortFunction);
 
         $("#show-filters-button").click(function () {
             let $this = $(this);
